@@ -7,25 +7,25 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Devices.E2ETests
 {
-    internal abstract class PerfScenario
+    public abstract class PerfScenario
     {
         protected ResultWriter _writer;
         protected int _sizeBytes;
-
-        public PerfScenario(ResultWriter writer, int sizeBytes)
+        protected string _authType;
+        protected Client.TransportType _transport;
+        
+        protected PerfScenario(PerfScenarioConfig config)
         {
-            _writer = writer;
-            _sizeBytes = sizeBytes;
+            _writer = config.Writer;
+            _sizeBytes = config.SizeBytes;
+            _authType = config.AuthType;
+            _transport = config.Transport;
         }
-
-        public abstract string Help();
 
         public abstract Task SetupAsync(CancellationToken ct);
 
         public abstract Task RunTestAsync(CancellationToken ct);
 
         public abstract Task TeardownAsync(CancellationToken ct);
-
-        public abstract void OnTaskUpdate(TimeSpan delta);
     }
 }

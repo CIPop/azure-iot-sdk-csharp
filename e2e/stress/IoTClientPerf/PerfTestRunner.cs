@@ -12,15 +12,19 @@ namespace Microsoft.Azure.Devices.E2ETests
     public class PerfTestRunner
     {
         private const int MaximumInitializationTimeSeconds = 2 * 60;
+        private const int StatUpdateIntervalMilliseconds = 500;
 
+        // Scenario information:
         private readonly ResultWriter _log;
-        private readonly int _timeSeconds;
         private readonly Client.TransportType _transportType;
         private readonly int _messageSizeBytes;
+        private readonly string _authType;
+
+        // Runner information:
         private readonly int _parallelOperations;
         private readonly int _n;
-        private readonly string _authType;
-        private readonly Type _scenarioClassType;
+        private readonly int _timeSeconds;
+        private readonly Func<PerfScenarioConfig, PerfScenario> _scenarioFactory;
 
         public PerfTestRunner(
             ResultWriter writer,
@@ -30,7 +34,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             int maximumParallelOperations,
             int scenarioInstances,
             string authType,
-            Type scenarioClassType)
+            Func<PerfScenarioConfig, PerfScenario> scenarioFactory)
         {
             _log = writer;
             _timeSeconds = timeSeconds;
@@ -39,12 +43,12 @@ namespace Microsoft.Azure.Devices.E2ETests
             _parallelOperations = maximumParallelOperations;
             _n = scenarioInstances;
             _authType = authType;
-            _scenarioClassType = scenarioClassType;
+            _scenarioFactory = scenarioFactory;
 
-            Console.WriteLine($"Running {_timeSeconds}s test.");
+            Console.WriteLine($"Running {_timeSeconds}s test. ({authType})");
             Console.WriteLine($"  {_n} operations ({_parallelOperations} parallel) with {_messageSizeBytes}B/message.");
         }
-        
+
         public async Task RunTestAsync()
         {
             var tests = new PerfScenario[_n];
@@ -55,9 +59,17 @@ namespace Microsoft.Azure.Devices.E2ETests
                 var semaphore = new SemaphoreSlim(_parallelOperations);
                 Console.Write($"Initializing tests (timeout={MaximumInitializationTimeSeconds}s) ... ");
 
+                PerfScenarioConfig c = new PerfScenarioConfig()
+                {
+                    Id = 0,
+                    SizeBytes = _messageSizeBytes,
+                    Writer = _log
+                };
+
                 for (int i = 0; i < tests.Length; i++)
                 {
-                    tests[i] = (PerfScenario)Activator.CreateInstance(_scenarioClassType);
+                    c.Id = i;
+                    tests[i] = _scenarioFactory(c);
                 }
 
                 for (int i = 0; i < tests.Length; i++)
@@ -70,11 +82,19 @@ namespace Microsoft.Azure.Devices.E2ETests
                 Console.WriteLine($"{sw.Elapsed}");
             }
 
+            sw.Restart();
+
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeSeconds)))
             {
                 int actualParallel = Math.Min(_parallelOperations, _n);
                 int currentInstance = 0;
-                int interimStatsCompleted = 0;
+
+                // Intermediate status update
+                int statInterimCompleted = 0;
+                int statTotalCompleted = 0;
+                Stopwatch statInterimSw = new Stopwatch();
+                statInterimSw.Start();
+
                 var tasks = new List<Task>(actualParallel);
 
                 for (; currentInstance < actualParallel; currentInstance++)
@@ -86,20 +106,59 @@ namespace Microsoft.Azure.Devices.E2ETests
                 {
                     Task finished = await Task.WhenAny(tasks).ConfigureAwait(false);
                     tasks.Remove(finished);
+                    statInterimCompleted++;
+
+                    if (statInterimSw.Elapsed.TotalMilliseconds > StatUpdateIntervalMilliseconds)
+                    {
+                        statInterimSw.Stop();
+                        statTotalCompleted += statInterimCompleted;
+
+                        // Totals:
+                        double totalSeconds = sw.Elapsed.TotalSeconds;
+                        double totalRequestsPerSec = statTotalCompleted / totalSeconds;
+                        double totalTransferPerSec = (statTotalCompleted * _messageSizeBytes) / totalSeconds;
+
+                        // Interim:
+                        double interimSeconds = statInterimSw.Elapsed.TotalSeconds;
+                        double requestsPerSec = statInterimCompleted / interimSeconds;
+                        double transferPerSec = (statInterimCompleted * _messageSizeBytes) / interimSeconds;
+
+                        Console.Write(
+                            $"[{sw.Elapsed}] " +
+                            $"{requestsPerSec:       0.00} RPS" +
+                            $"{GetHumanReadableBytesPerSecond(transferPerSec)}" +
+                            $"TOTAL: " + 
+                            $"{totalRequestsPerSec:       0.00} RPS" +
+                            $"{GetHumanReadableBytesPerSecond(totalTransferPerSec)}" +
+                            $"\r");
+
+                        statInterimSw.Restart();
+                    }
 
                     currentInstance++;
                     if (currentInstance > _n) currentInstance = 0;
 
                     tasks.Add(tests[currentInstance].RunTestAsync(cts.Token));
                 }
-
-
-
-
             }
-
         }
 
+        public static string GetHumanReadableBytesPerSecond(double bytesPerSecond)
+        {
+            if (bytesPerSecond < 1024)
+            {
+                return $"{bytesPerSecond}B/s";
+            }
+            else if (bytesPerSecond < 1024 * 1024)
+            {
+                return $"{bytesPerSecond / 1024: 0.00}kB/s";
+            }
+            else if (bytesPerSecond < 1024 * 1024 * 1024)
+            {
+                return $"{bytesPerSecond / (1024 * 1024): 0.00}MB/s";
+            }
+                
+            return $"{bytesPerSecond / (1024 * 1024 * 1024): 0.00}GB/s";
+        }
     }
 }
-

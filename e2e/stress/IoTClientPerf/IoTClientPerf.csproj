@@ -12,8 +12,4 @@
     <ProjectReference Include="..\..\..\shared\src\Microsoft.Azure.Devices.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Scenarios\" />
-  </ItemGroup>
-
 </Project>

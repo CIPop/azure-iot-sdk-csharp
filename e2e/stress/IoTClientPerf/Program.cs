@@ -3,33 +3,45 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Microsoft.Azure.Devices.E2ETests
 {
     public class Program
     {
-        private static Dictionary<string, Tuple<string, Type>> s_scenarios = new Dictionary<string, Tuple<string, Type>>()
+        private static Dictionary<string, Tuple<string, Func<PerfScenarioConfig, PerfScenario>>> s_scenarios
+            = new Dictionary<string, Tuple<string, Func<PerfScenarioConfig, PerfScenario>>>()
         {
-            {"generate_iothub_config", 
-                new Tuple<string, Type>("Generate the IoT Hub configuration required for the test (creates multiple devices).", null)},
+            {"generate_iothub_config",
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Generate the IoT Hub configuration required for the test (creates multiple devices).",
+                    (c) => {return new GenerateIotHubConfigTest(c);})},
 
             {"device_d2c",
-                new Tuple<string, Type>("Devices sending events to IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Devices sending events to IoT Hub.", 
+                    null) },
 
             {"device_c2d",
-                new Tuple<string, Type>("Devices receiving events from the IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Devices receiving events from the IoT Hub.", 
+                    null) },
 
             {"device_method",
-                new Tuple<string, Type>("Devices receiving methods from IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Devices receiving methods from IoT Hub.", 
+                    null) },
 
             {"service_c2d",
-                new Tuple<string, Type>("Services sending events to devices through IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Services sending events to devices through IoT Hub.", 
+                    null) },
 
             {"service_method",
-                new Tuple<string, Type>("Services calling methods on devices through IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("Services calling methods on devices through IoT Hub.", null) },
 
             {"single_device_d2c",
-                new Tuple<string, Type>("A single device sending many events to IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("A single device sending many events to IoT Hub.", null) },
         };
 
         private static void Help()
@@ -92,7 +104,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                         break;
 
                     case "-t":
-                        t = int.Parse(args[++param_counter]);
+                        t = int.Parse(args[++param_counter], CultureInfo.InvariantCulture);
                         break;
 
                     case "-o":
@@ -104,15 +116,15 @@ namespace Microsoft.Azure.Devices.E2ETests
                         break;
 
                     case "-s":
-                        s = int.Parse(args[++param_counter]);
+                        s = int.Parse(args[++param_counter], CultureInfo.InvariantCulture);
                         break;
 
                     case "-l":
-                        l = int.Parse(args[++param_counter]);
+                        l = int.Parse(args[++param_counter], CultureInfo.InvariantCulture);
                         break;
 
                     case "-n":
-                        n = int.Parse(args[++param_counter]);
+                        n = int.Parse(args[++param_counter], CultureInfo.InvariantCulture);
                         break;
 
                     case "-a":
@@ -138,15 +150,15 @@ namespace Microsoft.Azure.Devices.E2ETests
                 return -1;
             }
 
-            Tuple<string, Type> scenario;
-            Type scenarioType;
+            Tuple<string, Func<PerfScenarioConfig, PerfScenario>> scenario;
+            Func<PerfScenarioConfig, PerfScenario> scenarioFactory;
             if (!s_scenarios.TryGetValue(f, out scenario))
             {
                 Console.Error.WriteLine($"Unknown scenario: {f}");
                 return -1;
             }
 
-            scenarioType = scenario.Item2;
+            scenarioFactory = scenario.Item2;
 
             Client.TransportType transportType;
             if (!s_transportDictionary.TryGetValue(p, out transportType))
@@ -174,7 +186,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 l,
                 n,
                 a,
-                scenarioType);
+                scenarioFactory);
 
             runner.RunTestAsync().GetAwaiter().GetResult();
 
