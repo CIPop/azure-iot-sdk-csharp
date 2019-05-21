@@ -56,8 +56,8 @@ namespace Microsoft.Azure.Devices.E2ETests
                 "       -s <bytes>      : Payload size (default 128 bytes). This depends on the scenario.\n" +
                 "       -l <parallel_op>: Maximum parallel operations. (default 100 operations/scenarios in parallel).\n" +
                 "       -n <count>      : Number of scenario instances. (default 1 instance).\n" + 
-                "       -a <authType>   : Authentication type (default sas_device).\n" +
-                "                         Possible values: sas_device | sas_policy | x509 \n" +
+                "       -a <authType>   : Authentication type (default sas).\n" +
+                "                         Possible values: sas | sas_policy | x509 \n" +
                 "       -f <scenario>   : Scenario name. One of the following: \n"
             );
 
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             int s = 128;
             int l = 100;
             int n = 1;
-            string a = "sas_device";
+            string a = "sas";
             string f = null;
 
             while (param_counter + 1 < args.Length)

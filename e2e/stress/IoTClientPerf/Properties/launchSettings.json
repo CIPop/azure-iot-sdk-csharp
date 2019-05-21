@@ -2,7 +2,7 @@
   "profiles": {
     "IoTClientPerf": {
       "commandName": "Project",
-      "commandLineArgs": "-f generate_iothub_config -n 200000"
+      "commandLineArgs": "-f generate_iothub_config -n 200000 -a sas"
     }
   }
 }

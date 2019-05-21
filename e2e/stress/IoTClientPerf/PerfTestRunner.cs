@@ -26,6 +26,9 @@ namespace Microsoft.Azure.Devices.E2ETests
         private readonly int _timeSeconds;
         private readonly Func<PerfScenarioConfig, PerfScenario> _scenarioFactory;
 
+        private PerfScenario[] _tests;
+        private Stopwatch _sw = new Stopwatch();
+
         public PerfTestRunner(
             ResultWriter writer,
             int timeSeconds,
@@ -44,6 +47,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             _n = scenarioInstances;
             _authType = authType;
             _scenarioFactory = scenarioFactory;
+             _tests = new PerfScenario[_n];
 
             Console.WriteLine($"Running {_timeSeconds}s test. ({authType})");
             Console.WriteLine($"  {_n} operations ({_parallelOperations} parallel) with {_messageSizeBytes}B/message.");
@@ -51,47 +55,41 @@ namespace Microsoft.Azure.Devices.E2ETests
 
         public async Task RunTestAsync()
         {
-            var tests = new PerfScenario[_n];
-            Stopwatch sw = new Stopwatch();
-
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(MaximumInitializationTimeSeconds)))
+            try
             {
-                var semaphore = new SemaphoreSlim(_parallelOperations);
-                Console.Write($"Initializing tests (timeout={MaximumInitializationTimeSeconds}s) ... ");
-
-                PerfScenarioConfig c = new PerfScenarioConfig()
-                {
-                    Id = 0,
-                    SizeBytes = _messageSizeBytes,
-                    Writer = _log
-                };
-
-                for (int i = 0; i < tests.Length; i++)
-                {
-                    c.Id = i;
-                    tests[i] = _scenarioFactory(c);
-                }
-
-                for (int i = 0; i < tests.Length; i++)
-                {
-                    await semaphore.WaitAsync(cts.Token).ConfigureAwait(false);
-                    await tests[i].SetupAsync(cts.Token).ConfigureAwait(false);
-                    semaphore.Release();
-                }
-
-                Console.WriteLine($"{sw.Elapsed}");
+                await SetupAllAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("FAILED (timeout)");
             }
 
-            sw.Restart();
+            _sw.Restart();
 
+            try
+            {
+                await LoopAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"Test ended ({_sw.Elapsed}).");
+            }
+
+            _sw.Restart();
+
+            await TeardownAllAsync().ConfigureAwait(false);
+        }
+
+        private async Task LoopAsync()
+        {
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeSeconds)))
             {
                 int actualParallel = Math.Min(_parallelOperations, _n);
                 int currentInstance = 0;
 
                 // Intermediate status update
-                int statInterimCompleted = 0;
-                int statTotalCompleted = 0;
+                ulong statInterimCompleted = 0;
+                ulong statTotalCompleted = 0;
                 Stopwatch statInterimSw = new Stopwatch();
                 statInterimSw.Start();
 
@@ -99,7 +97,7 @@ namespace Microsoft.Azure.Devices.E2ETests
 
                 for (; currentInstance < actualParallel; currentInstance++)
                 {
-                    tasks.Add(tests[currentInstance].RunTestAsync(cts.Token));
+                    tasks.Add(_tests[currentInstance].RunTestAsync(cts.Token));
                 }
 
                 while (true)
@@ -114,35 +112,109 @@ namespace Microsoft.Azure.Devices.E2ETests
                         statTotalCompleted += statInterimCompleted;
 
                         // Totals:
-                        double totalSeconds = sw.Elapsed.TotalSeconds;
+                        double totalSeconds = _sw.Elapsed.TotalSeconds;
                         double totalRequestsPerSec = statTotalCompleted / totalSeconds;
-                        double totalTransferPerSec = (statTotalCompleted * _messageSizeBytes) / totalSeconds;
+                        double totalTransferPerSec = (statTotalCompleted * (ulong)_messageSizeBytes) / totalSeconds;
 
                         // Interim:
                         double interimSeconds = statInterimSw.Elapsed.TotalSeconds;
                         double requestsPerSec = statInterimCompleted / interimSeconds;
-                        double transferPerSec = (statInterimCompleted * _messageSizeBytes) / interimSeconds;
+                        double transferPerSec = (statInterimCompleted * (ulong)_messageSizeBytes) / interimSeconds;
 
                         Console.Write(
-                            $"[{sw.Elapsed}] " +
+                            $"[{_sw.Elapsed}] " +
                             $"{requestsPerSec:       0.00} RPS" +
                             $"{GetHumanReadableBytesPerSecond(transferPerSec)}" +
-                            $"TOTAL: " + 
+                            $" TOTAL: " +
                             $"{totalRequestsPerSec:       0.00} RPS" +
                             $"{GetHumanReadableBytesPerSecond(totalTransferPerSec)}" +
-                            $"\r");
+                            $"                 \r");
 
                         statInterimSw.Restart();
                     }
 
-                    currentInstance++;
-                    if (currentInstance > _n) currentInstance = 0;
+                    if (currentInstance >= _n) currentInstance = 0;
+                    tasks.Add(_tests[currentInstance].RunTestAsync(cts.Token));
 
-                    tasks.Add(tests[currentInstance].RunTestAsync(cts.Token));
+                    currentInstance++;
                 }
             }
         }
 
+        private async Task SetupAllAsync()
+        {
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(MaximumInitializationTimeSeconds)))
+            {
+                var semaphore = new SemaphoreSlim(_parallelOperations);
+                Stopwatch statInterimSw = new Stopwatch();
+                statInterimSw.Start();
+
+                PerfScenarioConfig c = new PerfScenarioConfig()
+                {
+                    Id = 0,
+                    SizeBytes = _messageSizeBytes,
+                    Writer = _log,
+                    AuthType = _authType,
+                    Transport = _transportType,
+                };
+
+                for (int i = 0; i < _tests.Length; i++)
+                {
+                    c.Id = i;
+                    _tests[i] = _scenarioFactory(c);
+                }
+
+                for (int i = 0; i < _tests.Length; i++)
+                {
+                    await semaphore.WaitAsync(cts.Token).ConfigureAwait(false);
+                    await _tests[i].SetupAsync(cts.Token).ConfigureAwait(false);
+                    semaphore.Release();
+
+                    if (statInterimSw.Elapsed.TotalMilliseconds > StatUpdateIntervalMilliseconds)
+                    {
+                        statInterimSw.Restart();
+                        int p_completed = (int)(((float)i / _n) * 100);
+                        Console.Write($"Initializing tests (timeout={MaximumInitializationTimeSeconds}s) ... {_sw.Elapsed} {p_completed}% \r");
+                    }
+                }
+
+                Console.WriteLine($"Initializing tests (timeout={MaximumInitializationTimeSeconds}s) ... {_sw.Elapsed}        ");
+            }
+        }
+
+        private async Task TeardownAllAsync()
+        {
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(MaximumInitializationTimeSeconds)))
+            {
+                Stopwatch statInterimSw = new Stopwatch();
+                statInterimSw.Start();
+
+                int count = 0;
+                foreach (PerfScenario test in _tests)
+                {
+                    try
+                    {
+                        await test.TeardownAsync(cts.Token).ConfigureAwait(false);
+
+                        if (statInterimSw.Elapsed.TotalMilliseconds > StatUpdateIntervalMilliseconds)
+                        {
+                            statInterimSw.Restart();
+                            int p_done = (int)(((float)count / _n) * 100);
+                            Console.Write($"Teardown: ... [{_sw.Elapsed}] {p_done}% \r");
+                        }
+
+                        count++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed: {ex}");
+                    }
+                }
+
+                Console.WriteLine($"Teardown: ... [{_sw.Elapsed}]     ");
+            }
+        }
+        
         public static string GetHumanReadableBytesPerSecond(double bytesPerSecond)
         {
             if (bytesPerSecond < 1024)

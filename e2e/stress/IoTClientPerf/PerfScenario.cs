@@ -13,6 +13,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         protected int _sizeBytes;
         protected string _authType;
         protected Client.TransportType _transport;
+        protected int _id;
         
         protected PerfScenario(PerfScenarioConfig config)
         {
@@ -20,6 +21,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             _sizeBytes = config.SizeBytes;
             _authType = config.AuthType;
             _transport = config.Transport;
+            _id = config.Id;
         }
 
         public abstract Task SetupAsync(CancellationToken ct);
