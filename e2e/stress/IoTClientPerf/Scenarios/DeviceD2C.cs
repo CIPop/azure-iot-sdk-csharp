@@ -25,12 +25,9 @@ namespace Microsoft.Azure.Devices.E2ETests
             BitConverter.TryWriteBytes(_messageBytes, _id);
         }
 
-        public override async Task RunTestAsync(CancellationToken ct)
+        public override Task RunTestAsync(CancellationToken ct)
         {
-            await CreateDeviceAsync().ConfigureAwait(false);
-            await OpenDeviceAsync(ct).ConfigureAwait(false);
-
-            await Task.Delay(10000).ConfigureAwait(false);
+            return SendMessageAsync(ct);
         }
 
         private async Task CreateDeviceAsync()
@@ -97,9 +94,10 @@ namespace Microsoft.Azure.Devices.E2ETests
             await _writer.WriteAsync(_m).ConfigureAwait(false);
         }
 
-        public override Task SetupAsync(CancellationToken ct)
+        public override async Task SetupAsync(CancellationToken ct)
         {
-            return Task.CompletedTask;
+            await CreateDeviceAsync().ConfigureAwait(false);
+            await OpenDeviceAsync(ct).ConfigureAwait(false);
         }
 
         public override Task TeardownAsync(CancellationToken ct)
