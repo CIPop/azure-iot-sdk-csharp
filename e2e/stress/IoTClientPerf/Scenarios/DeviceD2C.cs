@@ -60,19 +60,19 @@ namespace Microsoft.Azure.Devices.E2ETests
         private async Task OpenDeviceAsync(CancellationToken ct)
         {
             _m.OperationType = "open";
-            _sw.Restart();
-            Task t = _dc.OpenAsync(ct);
-            _m.ScheduleTime = _sw.ElapsedMilliseconds;
-
+            _m.ScheduleTime = null;
             _sw.Restart();
             try
             {
+                Task t = _dc.OpenAsync(ct);
+                _m.ScheduleTime = _sw.ElapsedMilliseconds;
+
+                _sw.Restart();
                 await t.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _m.ErrorMessage = ex.Message;
-
             }
 
             _m.ExecuteTime = _sw.ElapsedMilliseconds;
@@ -82,14 +82,23 @@ namespace Microsoft.Azure.Devices.E2ETests
         private async Task SendMessageAsync(CancellationToken ct)
         {
             _m.OperationType = "send_d2c";
-
+            _m.ScheduleTime = null;
             _sw.Restart();
-            Client.Message message = new Client.Message(_messageBytes);
-            Task t = _dc.SendEventAsync(message, ct);
-            _m.ScheduleTime = _sw.ElapsedMilliseconds;
 
-            _sw.Restart();
-            await t.ConfigureAwait(false);
+            try
+            {
+                Client.Message message = new Client.Message(_messageBytes);
+                Task t = _dc.SendEventAsync(message, ct);
+                _m.ScheduleTime = _sw.ElapsedMilliseconds;
+
+                _sw.Restart();
+                await t.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _m.ErrorMessage = ex.Message;
+            }
+
             _m.ExecuteTime = _sw.ElapsedMilliseconds;
             await _writer.WriteAsync(_m).ConfigureAwait(false);
         }
@@ -102,7 +111,7 @@ namespace Microsoft.Azure.Devices.E2ETests
 
         public override Task TeardownAsync(CancellationToken ct)
         {
-            return _dc.CloseAsync(ct);
+            return _dc?.CloseAsync(ct);
         }
     }
 }

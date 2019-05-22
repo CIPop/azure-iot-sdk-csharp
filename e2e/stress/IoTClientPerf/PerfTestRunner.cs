@@ -86,6 +86,10 @@ namespace Microsoft.Azure.Devices.E2ETests
 
         private async Task LoopAsync()
         {
+            int cursor_left, cursor_top;
+            cursor_left = Console.CursorLeft;
+            cursor_top = Console.CursorTop;
+
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeSeconds)))
             {
                 int actualParallel = Math.Min(_parallelOperations, _n);
@@ -101,13 +105,16 @@ namespace Microsoft.Azure.Devices.E2ETests
 
                 for (; currentInstance < actualParallel; currentInstance++)
                 {
-                    tasks.Add(_tests[currentInstance].RunTestAsync(cts.Token));
+                    cts.Token.ThrowIfCancellationRequested();
+                    tasks.Add(_tests[currentInstance].RunTestAsync(CancellationToken.None));
                 }
 
                 while (true)
                 {
+                    cts.Token.ThrowIfCancellationRequested();
                     Task finished = await Task.WhenAny(tasks).ConfigureAwait(false);
                     tasks.Remove(finished);
+
                     statInterimCompleted++;
 
                     if (statInterimSw.Elapsed.TotalMilliseconds > StatUpdateIntervalMilliseconds)
@@ -125,21 +132,25 @@ namespace Microsoft.Azure.Devices.E2ETests
                         double requestsPerSec = statInterimCompleted / interimSeconds;
                         double transferPerSec = (statInterimCompleted * (ulong)_messageSizeBytes) / interimSeconds;
 
-                        Console.Write(
-                            $"[{_sw.Elapsed}] " +
-                            $"{requestsPerSec:       0.00} RPS" +
-                            $"{GetHumanReadableBytesPerSecond(transferPerSec)}" +
-                            $" TOTAL: " +
-                            $"{totalRequestsPerSec:       0.00} RPS" +
-                            $"{GetHumanReadableBytesPerSecond(totalTransferPerSec)}" +
-                            $"                 \r");
+                        Console.SetCursorPosition(cursor_left, cursor_top);
+                        cursor_left = Console.CursorLeft;
+                        cursor_top = Console.CursorTop;
+
+                        Console.WriteLine($"[{_sw.Elapsed}] Statistics (every {StatUpdateIntervalMilliseconds}ms):");
+                        Console.WriteLine($"RPS       : {requestsPerSec:       0.00} RPS ");
+                        Console.WriteLine($"Throughput: {GetHumanReadableBytesPerSecond(transferPerSec)} ");
+                        Console.WriteLine("----");
+                        Console.WriteLine($"TOTALs: ");
+                        Console.WriteLine($"RPS       : {totalRequestsPerSec:       0.00} RPS ");
+                        Console.WriteLine($"Throughput: {GetHumanReadableBytesPerSecond(totalTransferPerSec)} ");
 
                         statInterimSw.Restart();
                     }
 
                     if (currentInstance >= _n) currentInstance = 0;
-                    tasks.Add(_tests[currentInstance].RunTestAsync(cts.Token));
+                    cts.Token.ThrowIfCancellationRequested();
 
+                    tasks.Add(_tests[currentInstance].RunTestAsync(CancellationToken.None));
                     currentInstance++;
                 }
             }
@@ -152,6 +163,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 var semaphore = new SemaphoreSlim(_parallelOperations);
                 Stopwatch statInterimSw = new Stopwatch();
                 statInterimSw.Start();
+                _sw.Restart();
 
                 PerfScenarioConfig c = new PerfScenarioConfig()
                 {
@@ -170,6 +182,7 @@ namespace Microsoft.Azure.Devices.E2ETests
 
                 for (int i = 0; i < _tests.Length; i++)
                 {
+                    // TODO: this is broken.
                     await semaphore.WaitAsync(cts.Token).ConfigureAwait(false);
                     await _tests[i].SetupAsync(cts.Token).ConfigureAwait(false);
                     semaphore.Release();
@@ -219,22 +232,22 @@ namespace Microsoft.Azure.Devices.E2ETests
             }
         }
         
-        public static string GetHumanReadableBytesPerSecond(double bytesPerSecond)
+        private static string GetHumanReadableBytesPerSecond(double bytesPerSecond)
         {
             if (bytesPerSecond < 1024)
             {
-                return $"{bytesPerSecond}B/s";
+                return $"{bytesPerSecond:       0.00}B/s";
             }
             else if (bytesPerSecond < 1024 * 1024)
             {
-                return $"{bytesPerSecond / 1024: 0.00}kB/s";
+                return $"{bytesPerSecond / 1024:       0.00}kB/s";
             }
             else if (bytesPerSecond < 1024 * 1024 * 1024)
             {
-                return $"{bytesPerSecond / (1024 * 1024): 0.00}MB/s";
+                return $"{bytesPerSecond / (1024 * 1024):       0.00}MB/s";
             }
                 
-            return $"{bytesPerSecond / (1024 * 1024 * 1024): 0.00}GB/s";
+            return $"{bytesPerSecond / (1024 * 1024 * 1024):       0.00}GB/s";
         }
     }
 }
