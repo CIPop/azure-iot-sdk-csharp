@@ -19,8 +19,8 @@ namespace Microsoft.Azure.Devices.E2ETests
 
             {"device_d2c",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Devices sending events to IoT Hub.", 
-                    null) },
+                    "Devices sending events to IoT Hub.",
+                    (c) => {return new DeviceD2C(c);})},
 
             {"device_c2d",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
@@ -176,8 +176,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             {
                 resultWriter = new ResultWriterFile(o);
             }
-
-
+            
             var runner = new PerfTestRunner(
                 resultWriter,
                 t,
@@ -186,6 +185,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 l,
                 n,
                 a,
+                f,
                 scenarioFactory);
 
             runner.RunTestAsync().GetAwaiter().GetResult();

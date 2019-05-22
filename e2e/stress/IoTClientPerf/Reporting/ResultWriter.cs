@@ -11,11 +11,11 @@ namespace Microsoft.Azure.Devices.E2ETests
         {
             if (await NeedsHeader().ConfigureAwait(false))
             {
-                await WriteLineAsync(DeviceTelemetryMetrics.GetHeader()).ConfigureAwait(false);
+                await WriteLineAsync(TelemetryMetrics.GetHeader()).ConfigureAwait(false);
             }
         }
 
-        public Task WriteAsync(DeviceTelemetryMetrics m)
+        public Task WriteAsync(TelemetryMetrics m)
         {
             return WriteLineAsync(m.ToString());
         }
