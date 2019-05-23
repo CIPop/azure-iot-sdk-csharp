@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,6 @@ namespace Microsoft.Azure.Devices.E2ETests
     public class PerfTestRunner
     {
         private const int MaximumInitializationTimeSeconds = 2 * 60;
-        private const int StatUpdateIntervalMilliseconds = 500;
 
         // Scenario information:
         private readonly ResultWriter _log;
@@ -59,16 +59,20 @@ namespace Microsoft.Azure.Devices.E2ETests
 
         public async Task RunTestAsync()
         {
+            _sw.Restart();
+
             try
             {
                 await SetupAllAsync().ConfigureAwait(false);
+                Console.WriteLine($"Setup completed (time:{_sw.Elapsed})");
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("FAILED (timeout)");
+                Console.WriteLine($"Setup FAILED (timeout:{_sw.Elapsed})");
             }
 
             _sw.Restart();
+            Console.WriteLine();
 
             try
             {
@@ -80,91 +84,65 @@ namespace Microsoft.Azure.Devices.E2ETests
             }
 
             _sw.Restart();
-
+            Console.WriteLine();
+            
             await TeardownAllAsync().ConfigureAwait(false);
+            Console.WriteLine("Done.                                    ");
         }
 
         private async Task LoopAsync()
         {
-            int cursor_left, cursor_top;
-            cursor_left = Console.CursorLeft;
-            cursor_top = Console.CursorTop;
-
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeSeconds)))
             {
-                int actualParallel = Math.Min(_parallelOperations, _n);
-                int currentInstance = 0;
-
-                // Intermediate status update
-                ulong statInterimCompleted = 0;
                 ulong statTotalCompleted = 0;
-                Stopwatch statInterimSw = new Stopwatch();
-                statInterimSw.Start();
+                ulong statTotalFaulted = 0;
+                ulong statTotalCancelled = 0;
+                double statTotalSeconds = 0.0;
+                List<double> statRps = new List<double>();
 
-                var tasks = new List<Task>(actualParallel);
-
-                for (; currentInstance < actualParallel; currentInstance++)
-                {
-                    cts.Token.ThrowIfCancellationRequested();
-                    tasks.Add(_tests[currentInstance].RunTestAsync(CancellationToken.None));
-                }
-
-                while (true)
-                {
-                    cts.Token.ThrowIfCancellationRequested();
-                    Task finished = await Task.WhenAny(tasks).ConfigureAwait(false);
-                    tasks.Remove(finished);
-
-                    statInterimCompleted++;
-
-                    if (statInterimSw.Elapsed.TotalMilliseconds > StatUpdateIntervalMilliseconds)
+                var runner = new ParallelRun(
+                    _tests,
+                    _parallelOperations,
+                    (test) => test.RunTestAsync(CancellationToken.None),
+                    (statInterimCompleted, statInterimFaulted, statInterimCancelled, statInterimTimeSec) =>
                     {
-                        statInterimSw.Stop();
                         statTotalCompleted += statInterimCompleted;
+                        statTotalFaulted += statInterimFaulted;
+                        statTotalCancelled += statInterimCancelled;
 
-                        // Totals:
-                        double totalSeconds = _sw.Elapsed.TotalSeconds;
-                        double totalRequestsPerSec = statTotalCompleted / totalSeconds;
-                        double totalTransferPerSec = (statTotalCompleted * (ulong)_messageSizeBytes) / totalSeconds;
+                        statTotalSeconds += statInterimTimeSec;
 
                         // Interim:
-                        double interimSeconds = statInterimSw.Elapsed.TotalSeconds;
-                        double requestsPerSec = statInterimCompleted / interimSeconds;
-                        double transferPerSec = (statInterimCompleted * (ulong)_messageSizeBytes) / interimSeconds;
+                        double requestsPerSec = statInterimCompleted / statInterimTimeSec;
+                        double transferPerSec = requestsPerSec * _messageSizeBytes;
 
-                        Console.SetCursorPosition(cursor_left, cursor_top);
-                        cursor_left = Console.CursorLeft;
-                        cursor_top = Console.CursorTop;
+                        statRps.Add(requestsPerSec);
 
-                        Console.WriteLine($"[{_sw.Elapsed}] Statistics (every {StatUpdateIntervalMilliseconds}ms):");
-                        Console.WriteLine($"RPS       : {requestsPerSec:       0.00} RPS ");
-                        Console.WriteLine($"Throughput: {GetHumanReadableBytesPerSecond(transferPerSec)} ");
+                        // Totals:
+                        double totalRequestsPerSec = statTotalCompleted / statTotalSeconds;
+                        double totalTransferPerSec = totalRequestsPerSec * _messageSizeBytes;
+
+                        (double avgRps, double stdDevRps) = CalculateAvgAndStDev(statRps);
+                        double avgBps = avgRps * _messageSizeBytes;
+                        double stdDevBps = stdDevRps * _messageSizeBytes;
+
+                        Console.WriteLine($"[{_sw.Elapsed}] Loop Statistics:");
+                        Console.WriteLine($"RPS       : {requestsPerSec,10:N2} R/s Avg: {avgRps,10:N2} R/s +/-StdDev: {stdDevRps,10:N2} R/s");
+                        Console.WriteLine($"Throughput: {GetHumanReadableBytes(transferPerSec)}/s Avg: {GetHumanReadableBytes(avgBps)}/s +/-StdDev: {GetHumanReadableBytes(avgRps)}/s         ");
                         Console.WriteLine("----");
                         Console.WriteLine($"TOTALs: ");
-                        Console.WriteLine($"RPS       : {totalRequestsPerSec:       0.00} RPS ");
-                        Console.WriteLine($"Throughput: {GetHumanReadableBytesPerSecond(totalTransferPerSec)} ");
+                        Console.WriteLine($"Requests  : Completed: {statTotalCompleted,10:N0} Faulted: {statTotalFaulted,10:N0} Cancelled: {statTotalCancelled,10:N0}");
+                        Console.WriteLine($"Data      :    {GetHumanReadableBytes(statTotalCompleted * (ulong)_messageSizeBytes)}             ");
+                    });
 
-                        statInterimSw.Restart();
-                    }
-
-                    if (currentInstance >= _n) currentInstance = 0;
-                    cts.Token.ThrowIfCancellationRequested();
-
-                    tasks.Add(_tests[currentInstance].RunTestAsync(CancellationToken.None));
-                    currentInstance++;
-                }
+                await runner.RunAsync(runOnce: false, cts.Token).ConfigureAwait(false);
             }
         }
 
         private async Task SetupAllAsync()
         {
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(MaximumInitializationTimeSeconds)))
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeSeconds)))
             {
-                var semaphore = new SemaphoreSlim(_parallelOperations);
-                Stopwatch statInterimSw = new Stopwatch();
-                statInterimSw.Start();
-                _sw.Restart();
-
                 PerfScenarioConfig c = new PerfScenarioConfig()
                 {
                     Id = 0,
@@ -180,74 +158,111 @@ namespace Microsoft.Azure.Devices.E2ETests
                     _tests[i] = _scenarioFactory(c);
                 }
 
-                for (int i = 0; i < _tests.Length; i++)
-                {
-                    // TODO: this is broken.
-                    await semaphore.WaitAsync(cts.Token).ConfigureAwait(false);
-                    await _tests[i].SetupAsync(cts.Token).ConfigureAwait(false);
-                    semaphore.Release();
+                ulong statTotalCompleted = 0;
+                ulong statTotalFaulted = 0;
+                ulong statTotalCancelled = 0;
+                double statTotalSeconds = 0.0;
+                List<double> statRps = new List<double>();
 
-                    if (statInterimSw.Elapsed.TotalMilliseconds > StatUpdateIntervalMilliseconds)
+                var runner = new ParallelRun(
+                    _tests,
+                    _parallelOperations,
+                    (test) => test.SetupAsync(CancellationToken.None),
+                    (statInterimCompleted, statInterimFaulted, statInterimCancelled, statInterimTimeSec) =>
                     {
-                        statInterimSw.Restart();
-                        int p_completed = (int)(((float)i / _n) * 100);
-                        Console.Write($"Initializing tests (timeout={MaximumInitializationTimeSeconds}s) ... {_sw.Elapsed} {p_completed}% \r");
-                    }
-                }
+                        statTotalCompleted += statInterimCompleted;
+                        statTotalFaulted += statInterimFaulted;
+                        statTotalCancelled += statInterimCancelled;
 
-                Console.WriteLine($"Initializing tests (timeout={MaximumInitializationTimeSeconds}s) ... {_sw.Elapsed}        ");
+                        statTotalSeconds += statInterimTimeSec;
+
+                        // Interim:
+                        double requestsPerSec = statInterimCompleted / statInterimTimeSec;
+                        statRps.Add(requestsPerSec);
+
+                        // Totals:
+                        double totalRequestsPerSec = statTotalCompleted / statTotalSeconds;
+
+                        (double avgRps, double stdDevRps) = CalculateAvgAndStDev(statRps);
+                        
+                        Console.WriteLine($"[{_sw.Elapsed}] Setup Statistics:");
+                        Console.WriteLine($"RPS       : {requestsPerSec,10:N2} R/s Avg: {avgRps,10:N2} R/s +/-StdDev: {stdDevRps,10:N2} R/s");
+                        Console.WriteLine("----");
+                        Console.WriteLine($"TOTALs: ");
+                        Console.WriteLine($"Requests  : Completed: {statTotalCompleted,10:N0} Faulted: {statTotalFaulted,10:N0} Cancelled: {statTotalCancelled,10:N0}");
+                    });
+
+                await runner.RunAsync(runOnce: true, cts.Token).ConfigureAwait(false);
             }
         }
 
         private async Task TeardownAllAsync()
         {
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(MaximumInitializationTimeSeconds)))
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_timeSeconds)))
             {
-                Stopwatch statInterimSw = new Stopwatch();
-                statInterimSw.Start();
 
-                int count = 0;
-                foreach (PerfScenario test in _tests)
-                {
-                    try
+                ulong statTotalCompleted = 0;
+                ulong statTotalFaulted = 0;
+                ulong statTotalCancelled = 0;
+                double statTotalSeconds = 0.0;
+                List<double> statRps = new List<double>();
+
+                var runner = new ParallelRun(
+                    _tests,
+                    _parallelOperations,
+                    (test) => test.TeardownAsync(CancellationToken.None),
+                    (statInterimCompleted, statInterimFaulted, statInterimCancelled, statInterimTimeSec) =>
                     {
-                        await test.TeardownAsync(cts.Token).ConfigureAwait(false);
+                        statTotalCompleted += statInterimCompleted;
+                        statTotalFaulted += statInterimFaulted;
+                        statTotalCancelled += statInterimCancelled;
 
-                        if (statInterimSw.Elapsed.TotalMilliseconds > StatUpdateIntervalMilliseconds)
-                        {
-                            statInterimSw.Restart();
-                            int p_done = (int)(((float)count / _n) * 100);
-                            Console.Write($"Teardown: ... [{_sw.Elapsed}] {p_done}% \r");
-                        }
+                        statTotalSeconds += statInterimTimeSec;
 
-                        count++;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed: {ex}");
-                    }
-                }
+                        // Interim:
+                        double requestsPerSec = statInterimCompleted / statInterimTimeSec;
+                        statRps.Add(requestsPerSec);
 
-                Console.WriteLine($"Teardown: ... [{_sw.Elapsed}]     ");
+                        // Totals:
+                        double totalRequestsPerSec = statTotalCompleted / statTotalSeconds;
+
+                        (double avgRps, double stdDevRps) = CalculateAvgAndStDev(statRps);
+
+                        Console.WriteLine($"[{_sw.Elapsed}] Teardown Statistics:");
+                        Console.WriteLine($"RPS       : {requestsPerSec,10:N2} R/s Avg: {avgRps,10:N2} R/s +/-StdDev: {stdDevRps,10:N2} R/s");
+                        Console.WriteLine("----");
+                        Console.WriteLine($"TOTALs: ");
+                        Console.WriteLine($"Requests  : Completed: {statTotalCompleted,10:N0} Faulted: {statTotalFaulted,10:N0} Cancelled: {statTotalCancelled,10:N0}");
+                    });
+
+                await runner.RunAsync(runOnce: true, cts.Token).ConfigureAwait(false);
             }
         }
         
-        private static string GetHumanReadableBytesPerSecond(double bytesPerSecond)
+        private static string GetHumanReadableBytes(double bytes)
         {
-            if (bytesPerSecond < 1024)
+            if (bytes < 1024)
             {
-                return $"{bytesPerSecond:       0.00}B/s";
+                return $"{bytes,10:N2}B ";
             }
-            else if (bytesPerSecond < 1024 * 1024)
+            else if (bytes < 1024 * 1024)
             {
-                return $"{bytesPerSecond / 1024:       0.00}kB/s";
+                return $"{bytes / 1024,10:N2}kB";
             }
-            else if (bytesPerSecond < 1024 * 1024 * 1024)
+            else if (bytes < 1024 * 1024 * 1024)
             {
-                return $"{bytesPerSecond / (1024 * 1024):       0.00}MB/s";
+                return $"{bytes / (1024 * 1024),10:N2}MB";
             }
                 
-            return $"{bytesPerSecond / (1024 * 1024 * 1024):       0.00}GB/s";
+            return $"{bytes / (1024 * 1024 * 1024),10:N2}GB";
+        }
+
+        private static Tuple<double, double> CalculateAvgAndStDev(List<double> values)
+        {
+            double avg = values.Average();
+            double stddev = Math.Sqrt(values.Average(v => ((v - avg) * (v - avg))));
+
+            return new Tuple<double, double>(avg, stddev);
         }
     }
 }

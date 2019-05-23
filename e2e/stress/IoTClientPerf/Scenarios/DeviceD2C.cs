@@ -4,7 +4,6 @@
 using Microsoft.Azure.Devices.Client;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +22,12 @@ namespace Microsoft.Azure.Devices.E2ETests
             _m.Id = _id;
             _messageBytes = new byte[_sizeBytes];
             BitConverter.TryWriteBytes(_messageBytes, _id);
+        }
+
+        public override async Task SetupAsync(CancellationToken ct)
+        {
+            await CreateDeviceAsync().ConfigureAwait(false);
+            await OpenDeviceAsync(ct).ConfigureAwait(false);
         }
 
         public override Task RunTestAsync(CancellationToken ct)
@@ -59,6 +64,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         
         private async Task OpenDeviceAsync(CancellationToken ct)
         {
+            ExceptionDispatchInfo exInfo = null;
             _m.OperationType = "open";
             _m.ScheduleTime = null;
             _sw.Restart();
@@ -73,14 +79,18 @@ namespace Microsoft.Azure.Devices.E2ETests
             catch (Exception ex)
             {
                 _m.ErrorMessage = ex.Message;
+                exInfo = ExceptionDispatchInfo.Capture(ex);
             }
 
             _m.ExecuteTime = _sw.ElapsedMilliseconds;
             await _writer.WriteAsync(_m).ConfigureAwait(false);
+
+            exInfo?.Throw();
         }
 
         private async Task SendMessageAsync(CancellationToken ct)
         {
+            ExceptionDispatchInfo exInfo = null;
             _m.OperationType = "send_d2c";
             _m.ScheduleTime = null;
             _sw.Restart();
@@ -97,21 +107,17 @@ namespace Microsoft.Azure.Devices.E2ETests
             catch (Exception ex)
             {
                 _m.ErrorMessage = ex.Message;
+                exInfo = ExceptionDispatchInfo.Capture(ex);
             }
 
             _m.ExecuteTime = _sw.ElapsedMilliseconds;
             await _writer.WriteAsync(_m).ConfigureAwait(false);
-        }
-
-        public override async Task SetupAsync(CancellationToken ct)
-        {
-            await CreateDeviceAsync().ConfigureAwait(false);
-            await OpenDeviceAsync(ct).ConfigureAwait(false);
+            exInfo?.Throw();
         }
 
         public override Task TeardownAsync(CancellationToken ct)
         {
-            return _dc?.CloseAsync(ct);
+            return _dc.CloseAsync(ct);
         }
     }
 }
