@@ -17,10 +17,17 @@ namespace Microsoft.Azure.Devices.E2ETests
         private Stopwatch _sw = new Stopwatch();
         private byte[] _messageBytes;
 
-        public DeviceD2C(PerfScenarioConfig config) : base(config)
+        private bool _pooled;
+        private int _poolSize;
+
+        public DeviceD2C(PerfScenarioConfig config, bool pooled=false, int poolSize=400) : base(config)
         {
             _m.Id = _id;
             _messageBytes = new byte[_sizeBytes];
+
+            _pooled = pooled;
+            _poolSize = poolSize;
+
             BitConverter.TryWriteBytes(_messageBytes, _id);
         }
 
@@ -40,9 +47,30 @@ namespace Microsoft.Azure.Devices.E2ETests
             _sw.Restart();
             _m.OperationType = "create";
 
+            ITransportSettings transportSettings = null;
+
+            if (_pooled && ((_transport == Client.TransportType.Amqp_Tcp_Only) || (_transport == Client.TransportType.Amqp_WebSocket_Only)))
+            {
+                transportSettings = new AmqpTransportSettings(
+                    _transport,
+                    50,
+                    new AmqpConnectionPoolSettings()
+                    {
+                        Pooling = true,
+                        MaxPoolSize = (uint)_poolSize,
+                    });
+            }
+
             if (_authType == "sas")
             {
-                _dc = DeviceClient.CreateFromConnectionString(Configuration.Stress.GetConnectionStringById(_id, _authType));
+                if (transportSettings == null)
+                {
+                    _dc = DeviceClient.CreateFromConnectionString(Configuration.Stress.GetConnectionStringById(_id, _authType), _transport);
+                }
+                else
+                {
+                    _dc = DeviceClient.CreateFromConnectionString(Configuration.Stress.GetConnectionStringById(_id, _authType), new ITransportSettings[] { transportSettings });
+                }
             }
             else if (_authType == "x509")
             {
@@ -50,7 +78,8 @@ namespace Microsoft.Azure.Devices.E2ETests
                     Configuration.Stress.Endpoint,
                     new DeviceAuthenticationWithX509Certificate(
                         Configuration.Stress.GetDeviceNameById(_id, _authType),
-                        Configuration.Stress.Certificate));
+                        Configuration.Stress.Certificate),
+                    _transport);
             }
             else
             {

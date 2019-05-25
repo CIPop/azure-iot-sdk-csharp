@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Net.NetworkInformation;
 
 namespace Microsoft.Azure.Devices.E2ETests
 {
@@ -22,6 +24,11 @@ namespace Microsoft.Azure.Devices.E2ETests
                     "Devices sending events to IoT Hub.",
                     (c) => {return new DeviceD2C(c);})},
 
+            {"device_d2c_mux",
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Devices sending events to IoT Hub.",
+                    (c) => {return new DeviceD2C(c, pooled:true, poolSize: 400);})},
+            
             {"device_c2d",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
                     "Devices receiving events from the IoT Hub.", 
@@ -188,6 +195,22 @@ namespace Microsoft.Azure.Devices.E2ETests
                 f,
                 scenarioFactory);
 
+            var proc = Process.GetCurrentProcess();
+            Console.WriteLine($"{proc.WorkingSet64} bytes {proc.TotalProcessorTime}");
+            Console.WriteLine($"{GC.GetTotalMemory(false)} GC");
+
+
+            IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
+            TcpConnectionInformation[] connections = properties.GetActiveTcpConnections();
+
+            foreach (TcpConnectionInformation conn in connections)
+            {
+                Console.Write("Local endpoint: {0}:{1} ", conn.LocalEndPoint.Address, conn.LocalEndPoint.Port);
+                Console.Write("Remote endpoint: {0}:{1} ", conn.RemoteEndPoint.Address, conn.LocalEndPoint.Port);
+                Console.WriteLine("{0}", conn.State);
+            }
+
+            return -1 ;
             runner.RunTestAsync().GetAwaiter().GetResult();
 
             return 0;
