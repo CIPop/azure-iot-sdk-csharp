@@ -195,6 +195,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 f,
                 scenarioFactory);
 
+#if false
             var proc = Process.GetCurrentProcess();
             Console.WriteLine($"{proc.WorkingSet64} bytes {proc.TotalProcessorTime}");
             Console.WriteLine($"{GC.GetTotalMemory(false)} GC");
@@ -211,6 +212,9 @@ namespace Microsoft.Azure.Devices.E2ETests
             }
 
             return -1 ;
+
+#endif 
+            
             runner.RunTestAsync().GetAwaiter().GetResult();
 
             return 0;
