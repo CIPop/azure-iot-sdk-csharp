@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Globalization;
 using System.Text;
 
 namespace Microsoft.Azure.Devices.E2ETests
@@ -8,7 +10,6 @@ namespace Microsoft.Azure.Devices.E2ETests
     public class TelemetryMetrics
     {
         private static string s_configString; // Contains all Config* parameters.
-        public double? WallTime;
         public int? Id;
         public string OperationType; // e.g. OpenAsync / SendAsync, etc
         public double? ScheduleTime;
@@ -18,13 +19,18 @@ namespace Microsoft.Azure.Devices.E2ETests
         public static string GetHeader()
         {
             return
-                "WallTimeMs," +
-                "Id, " +
+                "@timestamp," + // @timestamp to match ELK standard naming.
+                "Id," + // Application metrics.
                 "Operation," +
-                "ScheduleTimeMs, " +
-                "ExecuteTimeMs, " +
+                "ScheduleTimeMs," +
+                "ExecuteTimeMs," +
 
-                "ConfigScenario," +
+                "CPU," +            // System metrics.
+                "TotalMemoryBytes," + 
+                "GCMemoryBytes," +
+                "TCPConnections," +
+
+                "ConfigScenario," +     // Config (for filtering purposes).
                 "ConfigTimeSeconds," +
                 "ConfigTransportType," +
                 "ConfigMessageSizeBytes," +
@@ -44,17 +50,29 @@ namespace Microsoft.Azure.Devices.E2ETests
             string authType,
             string scenario)
         {
-            s_configString = $"{scenario},{timeSeconds},{transportType.ToString()},{messageSizeBytes},{maximumParallelOperations},{scenarioInstances},{authType},";
+            s_configString = $"{scenario},{timeSeconds},{transportType.ToString()},{messageSizeBytes},{maximumParallelOperations},{scenarioInstances},{authType}";
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder(); 
-            Add(sb, WallTime);
+            Add(
+                sb, 
+                DateTime.Now.ToString(
+                    "yyyy-MM-dd HH:mm:ss.ffffff",
+                    CultureInfo.InvariantCulture));
             Add(sb, Id);
             Add(sb, OperationType);
             Add(sb, ScheduleTime);
             Add(sb, ExecuteTime);
+
+            SystemMetrics.GetMetrics(out int cpuPercent, out long memoryBytes, out long gcBytes, out long tcpConn);
+
+            Add(sb, cpuPercent);
+            Add(sb, memoryBytes);
+            Add(sb, gcBytes);
+            Add(sb, tcpConn);
+
             Add(sb, s_configString);
             Add(sb, ErrorMessage);
 

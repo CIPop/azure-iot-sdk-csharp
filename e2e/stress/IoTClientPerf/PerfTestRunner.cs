@@ -60,6 +60,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         public async Task RunTestAsync()
         {
             _sw.Restart();
+            await _log.WriteHeaderAsync().ConfigureAwait(false);
 
             try
             {
