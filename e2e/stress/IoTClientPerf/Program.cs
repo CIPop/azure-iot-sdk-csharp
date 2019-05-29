@@ -45,6 +45,9 @@ namespace Microsoft.Azure.Devices.E2ETests
             {"single_device_d2c",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("A single device sending many events to IoT Hub.", null) },
 
+
+
+
             { "device_combined_mux",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
                     "Devices using multiple features to IoT Hub on AMQP multiplexed connections.",
@@ -65,6 +68,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 "       -n <count>      : Number of scenario instances. (default 1 instance).\n" + 
                 "       -a <authType>   : Authentication type (default sas).\n" +
                 "                         Possible values: sas | sas_policy | x509 \n" +
+                "       -c <connections>: Enables AMQP Pooling. The connection pool size. (default -1: disabled)\n" +
                 "       -f <scenario>   : Scenario name. One of the following: \n"
             );
 
@@ -101,6 +105,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             int l = 100;
             int n = 1;
             string a = "sas";
+            int c = -1;
             string f = null;
 
             while (param_counter + 1 < args.Length)
@@ -136,6 +141,10 @@ namespace Microsoft.Azure.Devices.E2ETests
 
                     case "-a":
                         a = args[++param_counter];
+                        break;
+
+                    case "-c":
+                        c = int.Parse(args[++param_counter], CultureInfo.InvariantCulture);
                         break;
 
                     case "-f":
@@ -192,6 +201,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 l,
                 n,
                 a,
+                c,
                 f,
                 scenarioFactory);
 

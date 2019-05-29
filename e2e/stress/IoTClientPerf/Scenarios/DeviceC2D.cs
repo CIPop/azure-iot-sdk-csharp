@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Devices.E2ETests
 {
-    public class DeviceD2C : DeviceClientScenario
+    public class DeviceC2D : DeviceClientScenario
     {
-        public DeviceD2C(PerfScenarioConfig config) : base(config)
+        public DeviceC2D(PerfScenarioConfig config) : base(config)
         {
         }
 
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Devices.E2ETests
 
         public override Task RunTestAsync(CancellationToken ct)
         {
-            return SendMessageAsync(ct);
+            return ReceiveMessageAsync(ct);
         }
 
         public override Task TeardownAsync(CancellationToken ct)

@@ -13,8 +13,21 @@ namespace Microsoft.Azure.Devices.E2ETests
     public abstract class DeviceClientScenario : PerfScenario
     {
         private DeviceClient _dc;
+        
+        // Shared by Create, Open and Send
         private TelemetryMetrics _m = new TelemetryMetrics();
         private Stopwatch _sw = new Stopwatch();
+
+        // Separate metrics and time calculation for operations that can be parallelized.
+        private TelemetryMetrics _mRecv = new TelemetryMetrics();
+        private Stopwatch _swRecv = new Stopwatch();
+
+        private const string TestMethodName = "PerfTestMethod";
+        private TelemetryMetrics _mMethod = new TelemetryMetrics();
+        private Stopwatch _swMethod = new Stopwatch();
+        private SemaphoreSlim _methodSemaphore = new SemaphoreSlim(0);
+        private static readonly MethodResponse s_methodResponse = new MethodResponse(200);
+        
         private byte[] _messageBytes;
 
         private bool _pooled;
@@ -23,6 +36,12 @@ namespace Microsoft.Azure.Devices.E2ETests
         public DeviceClientScenario(PerfScenarioConfig config, bool pooled = false, int poolSize = 400) : base(config)
         {
             _m.Id = _id;
+
+            _mRecv.Id = _id;
+            _mRecv.OperationType = "recv_c2d";
+
+            _mMethod.Id = _id;
+
             _messageBytes = new byte[_sizeBytes];
 
             _pooled = pooled;
@@ -130,6 +149,92 @@ namespace Microsoft.Azure.Devices.E2ETests
 
             _m.ExecuteTime = _sw.ElapsedMilliseconds;
             await _writer.WriteAsync(_m).ConfigureAwait(false);
+            exInfo?.Throw();
+        }
+
+        protected async Task ReceiveMessageAsync(CancellationToken ct)
+        {
+            ExceptionDispatchInfo exInfo = null;
+            _mRecv.ScheduleTime = null;
+            _swRecv.Restart();
+
+            try
+            {
+                Task<Client.Message> t = _dc.ReceiveAsync(ct);
+                _mRecv.ScheduleTime = _swRecv.ElapsedMilliseconds;
+
+                _swRecv.Restart();
+                Client.Message msg = await t.ConfigureAwait(false);
+
+                int deviceIdFromMessage = BitConverter.ToInt32(msg.GetBytes());
+                if (_id != deviceIdFromMessage) throw new InvalidOperationException($"DeviceId mismatch: Expected {_id} actual {deviceIdFromMessage}.");
+            }
+            catch (Exception ex)
+            {
+                _mRecv.ErrorMessage = ex.Message;
+                exInfo = ExceptionDispatchInfo.Capture(ex);
+            }
+
+            _mRecv.ExecuteTime = _swRecv.ElapsedMilliseconds;
+            await _writer.WriteAsync(_mRecv).ConfigureAwait(false);
+            exInfo?.Throw();
+        }
+
+        protected async Task EnableMethodsAsync(CancellationToken ct)
+        {
+            ExceptionDispatchInfo exInfo = null;
+            _mMethod.ScheduleTime = null;
+            _mMethod.OperationType = "method_enable";
+            _swMethod.Restart();
+
+            try
+            {
+                Task t = _dc.SetMethodHandlerAsync(TestMethodName, MethodHandlerAsync, null);
+                _mMethod.ScheduleTime = _swMethod.ElapsedMilliseconds;
+
+                _swMethod.Restart();
+                await t.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _mMethod.ErrorMessage = ex.Message;
+                exInfo = ExceptionDispatchInfo.Capture(ex);
+            }
+
+            _mMethod.ExecuteTime = _swMethod.ElapsedMilliseconds;
+            await _writer.WriteAsync(_mMethod).ConfigureAwait(false);
+            exInfo?.Throw();
+        }
+
+        private Task<MethodResponse> MethodHandlerAsync(MethodRequest methodRequest, object userContext)
+        {
+            _methodSemaphore.Release();
+            return Task.FromResult(s_methodResponse);
+        }
+
+        protected async Task WaitForMethodAsync(CancellationToken ct)
+        {
+            ExceptionDispatchInfo exInfo = null;
+            _mMethod.ScheduleTime = null;
+            _mMethod.OperationType = "method_call";
+            _swMethod.Restart();
+
+            try
+            {
+                Task t = _methodSemaphore.WaitAsync(ct);
+                _mMethod.ScheduleTime = _swMethod.ElapsedMilliseconds;
+
+                _swMethod.Restart();
+                await t.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _mMethod.ErrorMessage = ex.Message;
+                exInfo = ExceptionDispatchInfo.Capture(ex);
+            }
+
+            _mMethod.ExecuteTime = _swMethod.ElapsedMilliseconds;
+            await _writer.WriteAsync(_mMethod).ConfigureAwait(false);
             exInfo?.Throw();
         }
 

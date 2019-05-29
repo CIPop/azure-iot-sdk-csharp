@@ -10,5 +10,6 @@ namespace Microsoft.Azure.Devices.E2ETests
         public int SizeBytes;
         public string AuthType;
         public Client.TransportType Transport;
+        public int poolSize;
     }
 }

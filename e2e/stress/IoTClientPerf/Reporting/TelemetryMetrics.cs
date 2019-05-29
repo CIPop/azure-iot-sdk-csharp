@@ -37,6 +37,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 "ConfigParallelOperations," +
                 "ConfigScenarioInstances," +
                 "ConfigAuthType," +
+                "ConfigPoolSize," +
                 
                 "ErrorMessage, ";
         }
@@ -48,9 +49,10 @@ namespace Microsoft.Azure.Devices.E2ETests
             int maximumParallelOperations,
             int scenarioInstances,
             string authType,
+            int poolSize,
             string scenario)
         {
-            s_configString = $"{scenario},{timeSeconds},{transportType.ToString()},{messageSizeBytes},{maximumParallelOperations},{scenarioInstances},{authType}";
+            s_configString = $"{scenario},{timeSeconds},{transportType.ToString()},{messageSizeBytes},{maximumParallelOperations},{scenarioInstances},{authType},{poolSize}";
         }
 
         public override string ToString()

@@ -38,6 +38,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             int maximumParallelOperations,
             int scenarioInstances,
             string authType,
+            int poolSize,
             string scenario,
             Func<PerfScenarioConfig, PerfScenario> scenarioFactory)
         {
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             _scenarioFactory = scenarioFactory;
              _tests = new PerfScenario[_n];
 
-            TelemetryMetrics.SetStaticConfigParameters(_timeSeconds, _transportType, _messageSizeBytes, _parallelOperations, _n, _authType, scenario);
+            TelemetryMetrics.SetStaticConfigParameters(_timeSeconds, _transportType, _messageSizeBytes, _parallelOperations, _n, _authType, poolSize, scenario);
 
             Console.WriteLine($"Running {_timeSeconds}s test. ({authType})");
             Console.WriteLine($"  {_n} operations ({_parallelOperations} parallel) with {_messageSizeBytes}B/message.");
