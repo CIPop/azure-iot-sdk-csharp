@@ -136,7 +136,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                         Console.WriteLine($"Data      :    {GetHumanReadableBytes(statTotalCompleted * (ulong)_messageSizeBytes)}             ");
                     });
 
-                await runner.RunAsync(runOnce: false, cts.Token).ConfigureAwait(false);
+                await runner.RunAsync(runOnce: false, ct: cts.Token).ConfigureAwait(false);
             }
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                         Console.WriteLine($"Requests  : Completed: {statTotalCompleted,10:N0} Faulted: {statTotalFaulted,10:N0} Cancelled: {statTotalCancelled,10:N0}");
                     });
 
-                await runner.RunAsync(runOnce: true, cts.Token).ConfigureAwait(false);
+                await runner.RunAsync(runOnce: true, ct: cts.Token).ConfigureAwait(false);
             }
         }
 
@@ -236,7 +236,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                         Console.WriteLine($"Requests  : Completed: {statTotalCompleted,10:N0} Faulted: {statTotalFaulted,10:N0} Cancelled: {statTotalCancelled,10:N0}");
                     });
 
-                await runner.RunAsync(runOnce: true, cts.Token).ConfigureAwait(false);
+                await runner.RunAsync(runOnce: true, ct: cts.Token).ConfigureAwait(false);
             }
         }
         

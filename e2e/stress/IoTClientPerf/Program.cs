@@ -24,11 +24,6 @@ namespace Microsoft.Azure.Devices.E2ETests
                     "Devices sending events to IoT Hub.",
                     (c) => {return new DeviceD2C(c);})},
 
-            {"device_d2c_mux",
-                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Devices sending events to IoT Hub.",
-                    (c) => {return new DeviceD2C(c, pooled:true, poolSize: 400);})},
-            
             {"device_c2d",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
                     "Devices receiving events from the IoT Hub.", 
@@ -46,9 +41,14 @@ namespace Microsoft.Azure.Devices.E2ETests
 
             {"service_method",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("Services calling methods on devices through IoT Hub.", null) },
-
+            
             {"single_device_d2c",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("A single device sending many events to IoT Hub.", null) },
+
+            { "device_combined_mux",
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Devices using multiple features to IoT Hub on AMQP multiplexed connections.",
+                    (c) => {return new DeviceD2C(c, pooled:true, poolSize: 400);})},
         };
 
         private static void Help()
