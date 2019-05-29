@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         private bool _pooled;
         private int _poolSize;
 
-        public DeviceClientScenario(PerfScenarioConfig config, bool pooled = false, int poolSize = 400) : base(config)
+        public DeviceClientScenario(PerfScenarioConfig config) : base(config)
         {
             _m.Id = _id;
 
@@ -44,8 +44,8 @@ namespace Microsoft.Azure.Devices.E2ETests
 
             _messageBytes = new byte[_sizeBytes];
 
-            _pooled = pooled;
-            _poolSize = poolSize;
+            _pooled = config.PoolSize > 0;
+            if (_pooled) _poolSize = config.PoolSize;
 
             BitConverter.TryWriteBytes(_messageBytes, _id);
         }
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             {
                 transportSettings = new AmqpTransportSettings(
                     _transport,
-                    50,
+                    50,     // Prefetch Count.
                     new AmqpConnectionPoolSettings()
                     {
                         Pooling = true,

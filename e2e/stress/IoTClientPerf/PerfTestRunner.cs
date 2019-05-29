@@ -12,20 +12,18 @@ namespace Microsoft.Azure.Devices.E2ETests
 {
     public class PerfTestRunner
     {
-        private const int MaximumInitializationTimeSeconds = 2 * 60;
-
         // Scenario information:
         private readonly ResultWriter _log;
         private readonly Client.TransportType _transportType;
         private readonly int _messageSizeBytes;
         private readonly string _authType;
+        private readonly int _poolSize;
 
         // Runner information:
         private readonly int _parallelOperations;
         private readonly int _n;
         private readonly int _timeSeconds;
         private readonly Func<PerfScenarioConfig, PerfScenario> _scenarioFactory;
-        private readonly string _configString;
 
         private PerfScenario[] _tests;
         private Stopwatch _sw = new Stopwatch();
@@ -49,12 +47,15 @@ namespace Microsoft.Azure.Devices.E2ETests
             _parallelOperations = maximumParallelOperations;
             _n = scenarioInstances;
             _authType = authType;
+            _poolSize = poolSize;
             _scenarioFactory = scenarioFactory;
              _tests = new PerfScenario[_n];
 
-            TelemetryMetrics.SetStaticConfigParameters(_timeSeconds, _transportType, _messageSizeBytes, _parallelOperations, _n, _authType, poolSize, scenario);
+            TelemetryMetrics.SetStaticConfigParameters(_timeSeconds, _transportType, _messageSizeBytes, _parallelOperations, _n, _authType, _poolSize, scenario);
 
-            Console.WriteLine($"Running {_timeSeconds}s test. ({authType})");
+            string poolInfo = "";
+            if (_poolSize > 0) poolInfo = $"(pooled, {_poolSize} connections)";
+            Console.WriteLine($"Running {_timeSeconds}s test. ({_transportType}{poolInfo} {authType})");
             Console.WriteLine($"  {_n} operations ({_parallelOperations} parallel) with {_messageSizeBytes}B/message.");
         }
 
@@ -152,6 +153,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                     Writer = _log,
                     AuthType = _authType,
                     Transport = _transportType,
+                    PoolSize = _poolSize
                 };
 
                 for (int i = 0; i < _tests.Length; i++)

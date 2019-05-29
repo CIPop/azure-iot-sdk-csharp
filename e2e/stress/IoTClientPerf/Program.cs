@@ -45,13 +45,10 @@ namespace Microsoft.Azure.Devices.E2ETests
             {"single_device_d2c",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("A single device sending many events to IoT Hub.", null) },
 
-
-
-
-            { "device_combined_mux",
+            { "device_all",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Devices using multiple features to IoT Hub on AMQP multiplexed connections.",
-                    (c) => {return new DeviceD2C(c, pooled:true, poolSize: 400);})},
+                    "Devices using multiple features to IoT Hub.",
+                    (c) => {return new DeviceD2C(c);})},
         };
 
         private static void Help()
@@ -69,6 +66,7 @@ namespace Microsoft.Azure.Devices.E2ETests
                 "       -a <authType>   : Authentication type (default sas).\n" +
                 "                         Possible values: sas | sas_policy | x509 \n" +
                 "       -c <connections>: Enables AMQP Pooling. The connection pool size. (default -1: disabled)\n" +
+                "                         This setting is ignored transport types other than AMQP.\n" +
                 "       -f <scenario>   : Scenario name. One of the following: \n"
             );
 
