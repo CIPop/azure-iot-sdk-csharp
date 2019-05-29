@@ -22,33 +22,42 @@ namespace Microsoft.Azure.Devices.E2ETests
             {"device_d2c",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
                     "Devices sending events to IoT Hub.",
-                    (c) => {return new DeviceD2C(c);})},
+                    (c) => {return new DeviceD2CTest(c);})},
 
             {"device_c2d",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Devices receiving events from the IoT Hub.", 
-                    null) },
+                    "Devices receiving events from the IoT Hub.",
+                    (c) => {return new DeviceC2DTest(c);}) },
 
             {"device_method",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Devices receiving methods from IoT Hub.", 
-                    null) },
+                    "Devices receiving method calls from IoT Hub.",
+                    (c) => {return new DeviceMethodTest(c);}) },
 
             {"service_c2d",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Services sending events to devices through IoT Hub.", 
-                    null) },
+                    "ServiceClient sending events to devices through IoT Hub.",
+                    (c) => {return new ServiceC2DTest(c);}) },
 
             {"service_method",
-                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("Services calling methods on devices through IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "ServiceClient calling methods on devices through IoT Hub.",
+                    (c) => {return new ServiceMethodTest(c);}) },
             
             {"single_device_d2c",
-                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>("A single device sending many events to IoT Hub.", null) },
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "A single device sending many events to IoT Hub.",
+                    (c) => {return new DeviceOneD2CTest(c);}) },
 
             { "device_all",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Devices using multiple features to IoT Hub.",
-                    (c) => {return new DeviceD2C(c);})},
+                    "Devices connecting to IoT Hub then using multiple features.",
+                    (c) => {return new DeviceAllTest(c);})},
+
+            { "device_all_openclose",
+                new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
+                    "Like device_all but devices keep connecting and disconnecting.",
+                    (c) => {return new DeviceAllOpenCloseTest(c);})},
         };
 
         private static void Help()

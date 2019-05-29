@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Devices.E2ETests
 {
-    public class DeviceMethod : DeviceClientScenario
+    public class DeviceD2CTest : DeviceClientScenario
     {
-        public DeviceMethod(PerfScenarioConfig config) : base(config)
+        public DeviceD2CTest(PerfScenarioConfig config) : base(config)
         {
         }
 
@@ -16,12 +16,11 @@ namespace Microsoft.Azure.Devices.E2ETests
         {
             await CreateDeviceAsync().ConfigureAwait(false);
             await OpenDeviceAsync(ct).ConfigureAwait(false);
-            await EnableMethodsAsync(ct).ConfigureAwait(false);
         }
 
         public override Task RunTestAsync(CancellationToken ct)
         {
-            return WaitForMethodAsync(ct);
+            return SendMessageAsync(ct);
         }
 
         public override Task TeardownAsync(CancellationToken ct)

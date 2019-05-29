@@ -9,6 +9,20 @@ namespace Microsoft.Azure.Devices.E2ETests
 {
     public class TelemetryMetrics
     {
+        public const string DeviceOperationCreate = "device_create";
+        public const string DeviceOperationOpen = "device_open";
+        public const string DeviceOperationClose = "device_close";
+        public const string DeviceOperationSend = "device_send";
+        public const string DeviceOperationReceive = "device_receive";
+        public const string DeviceOperationMethodEnable = "device_method_enable";
+        public const string DeviceOperationMethodCalled = "device_method_called";
+
+        public const string ServiceOperationCreate = "service_create";
+        public const string ServiceOperationOpen = "service_open";
+        public const string ServiceOperationClose = "service_close";
+        public const string ServiceOperationSend = "service_send";
+        public const string ServiceOperationMethodCall = "service_method_call";
+
         private static string s_configString; // Contains all Config* parameters.
         public int? Id;
         public string OperationType; // e.g. OpenAsync / SendAsync, etc

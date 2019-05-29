@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Devices.E2ETests
 {
-    public class DeviceC2D : DeviceClientScenario
+    public class DeviceC2DTest : DeviceClientScenario
     {
-        public DeviceC2D(PerfScenarioConfig config) : base(config)
+        public DeviceC2DTest(PerfScenarioConfig config) : base(config)
         {
         }
 

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         private Stopwatch _swMethod = new Stopwatch();
         private SemaphoreSlim _methodSemaphore = new SemaphoreSlim(0);
         private static readonly MethodResponse s_methodResponse = new MethodResponse(200);
-        
+
         private byte[] _messageBytes;
 
         private bool _pooled;
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             _m.Id = _id;
 
             _mRecv.Id = _id;
-            _mRecv.OperationType = "recv_c2d";
+            _mRecv.OperationType = TelemetryMetrics.DeviceOperationReceive;
 
             _mMethod.Id = _id;
 
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         protected async Task CreateDeviceAsync()
         {
             _sw.Restart();
-            _m.OperationType = "create";
+            _m.OperationType = TelemetryMetrics.DeviceOperationCreate;
 
             ITransportSettings transportSettings = null;
 
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         protected async Task OpenDeviceAsync(CancellationToken ct)
         {
             ExceptionDispatchInfo exInfo = null;
-            _m.OperationType = "open";
+            _m.OperationType = TelemetryMetrics.DeviceOperationOpen;
             _m.ScheduleTime = null;
             _sw.Restart();
             try
@@ -128,7 +128,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         protected async Task SendMessageAsync(CancellationToken ct)
         {
             ExceptionDispatchInfo exInfo = null;
-            _m.OperationType = "send_d2c";
+            _m.OperationType = TelemetryMetrics.DeviceOperationSend;
             _m.ScheduleTime = null;
             _sw.Restart();
 
@@ -184,7 +184,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         {
             ExceptionDispatchInfo exInfo = null;
             _mMethod.ScheduleTime = null;
-            _mMethod.OperationType = "method_enable";
+            _mMethod.OperationType = TelemetryMetrics.DeviceOperationMethodEnable;
             _swMethod.Restart();
 
             try
@@ -216,7 +216,7 @@ namespace Microsoft.Azure.Devices.E2ETests
         {
             ExceptionDispatchInfo exInfo = null;
             _mMethod.ScheduleTime = null;
-            _mMethod.OperationType = "method_call";
+            _mMethod.OperationType = TelemetryMetrics.DeviceOperationMethodCalled;
             _swMethod.Restart();
 
             try
