@@ -216,9 +216,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             }
             catch (Exception ex) when (!ex.IsFatal())
             {
-                amqpIoTCbsLink?.Close();
-                amqpAuthenticationRefresher?.StopLoop();
-                amqpIoTConnection?.SafeClose();
+                Shutdown();
                 throw;
             }
             finally
