@@ -11,78 +11,78 @@ namespace Microsoft.Azure.Devices.Provisioning.Transport.Mqtt.UnitTests
     [TestCategory("Unit")]
     public class ProvisioningErrorDetailsMqttTests
     {
-        private static double? throttledDelay = 32;
-        private static string validTopicNameThrottled = $"$dps/registrations/res/429/?$rid=9&Retry-After={throttledDelay}";
+        private static double? _throttledDelay = 32;
+        private static string _validTopicNameThrottled = $"$dps/registrations/res/429/?$rid=9&Retry-After={_throttledDelay}";
 
         private static double? acceptedDelay = 23;
-        private static string validTopicNameAccepted = $"$dps/registrations/res/202/?$rid=9&Retry-After={acceptedDelay}";
+        private static string _validTopicNameAccepted = $"$dps/registrations/res/202/?$rid=9&Retry-After={acceptedDelay}";
 
-        private TimeSpan defaultInterval = TimeSpan.FromSeconds(2);
+        private TimeSpan _defaultInterval = TimeSpan.FromSeconds(2);
 
         [TestMethod]
-        public void testRetryAfterValidThrottled()
+        public void RetryAfterValidThrottled()
         {
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(validTopicNameThrottled, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(_validTopicNameThrottled, _defaultInterval);
             Assert.IsNotNull(actual);
-            Assert.AreEqual(throttledDelay, actual?.Seconds);
+            Assert.AreEqual(_throttledDelay, actual?.Seconds);
         }
 
         [TestMethod]
-        public void testRetryAfterValidAccepted()
+        public void RetryAfterValidAccepted()
         {
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(validTopicNameAccepted, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(_validTopicNameAccepted, _defaultInterval);
             Assert.IsNotNull(actual);
             Assert.AreEqual(acceptedDelay, actual?.Seconds);
         }
 
         [TestMethod]
-        public void testRetryAfterWithNoRetryAfterValue()
+        public void RetryAfterWithNoRetryAfterValue()
         {
             string invalidTopic = "$dps/registrations/res/429/?$rid=9&Retry-After=";
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, _defaultInterval);
             Assert.IsNull(actual);
         }
 
         [TestMethod]
-        public void testRetryAfterWithNoRetryAfterQueryKeyOrValue()
+        public void RetryAfterWithNoRetryAfterQueryKeyOrValue()
         {
             string invalidTopic = "$dps/registrations/res/429/?$rid=9";
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, _defaultInterval);
             Assert.IsNull(actual);
         }
 
         [TestMethod]
-        public void testRetryAfterWithNoQueryString()
+        public void RetryAfterWithNoQueryString()
         {
             string invalidTopic = "$dps/registrations/res/429/";
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, _defaultInterval);
             Assert.IsNull(actual);
         }
 
         [TestMethod]
-        public void testRetryAfterWithNoTopicString()
+        public void RetryAfterWithNoTopicString()
         {
             string invalidTopic = "";
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, _defaultInterval);
             Assert.IsNull(actual);
         }
 
         [TestMethod]
-        public void testRetryAfterWithTooSmallOfDelayChoosesDefault()
+        public void RetryAfterWithTooSmallOfDelayChoosesDefault()
         {
             string invalidTopic = "$dps/registrations/res/429/?$rid=9&Retry-After=0";
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, _defaultInterval);
             Assert.IsNotNull(actual);
-            Assert.AreEqual(defaultInterval.Seconds, actual?.Seconds);
+            Assert.AreEqual(_defaultInterval.Seconds, actual?.Seconds);
         }
 
         [TestMethod]
-        public void testRetryAfterWithNegativeDelayChoosesDefault()
+        public void RetryAfterWithNegativeDelayChoosesDefault()
         {
             string invalidTopic = "$dps/registrations/res/429/?$rid=9&Retry-After=-1";
-            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, defaultInterval);
+            TimeSpan? actual = ProvisioningErrorDetailsMqtt.GetRetryAfterFromTopic(invalidTopic, _defaultInterval);
             Assert.IsNotNull(actual);
-            Assert.AreEqual(defaultInterval.Seconds, actual?.Seconds);
+            Assert.AreEqual(_defaultInterval.Seconds, actual?.Seconds);
         }
     }
 }

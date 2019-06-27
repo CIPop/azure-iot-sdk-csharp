@@ -9,9 +9,9 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
-    internal class AmqpUnitManager : IAmqpUnitManager, IDisposable
+    internal class AmqpIoTSessionFactory: IDisposable
     {
-        private static readonly AmqpUnitManager s_instance = new AmqpUnitManager();
+        private static readonly AmqpIoTSessionFactory s_instance = new AmqpIoTSessionFactory();
 
         private IDictionary<string, IAmqpUnitManager> _amqpConnectionPools;
         private readonly object _lock = new object();
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         {
             _amqpConnectionPools = new Dictionary<string, IAmqpUnitManager>();
         }
-        internal static AmqpUnitManager GetInstance()
+        internal static AmqpIoTSessionFactory GetInstance()
         {
             return s_instance;
         }

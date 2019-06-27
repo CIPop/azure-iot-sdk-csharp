@@ -17,6 +17,8 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         #region Members-Constructor
         private const int ResponseTimeoutInSeconds = 300;
         private readonly TimeSpan _operationTimeout;
+        private readonly TimeSpan _openTimeout;
+
         private readonly AmqpUnit _amqpUnit;
         private readonly Action<TwinCollection> _desiredPropertyListener;
         private ConcurrentDictionary<string, TaskCompletionSource<Twin>> _twinResponseCompletions = new ConcurrentDictionary<string, TaskCompletionSource<Twin>>();
@@ -46,9 +48,12 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             : base(context, transportSettings)
         {
             _operationTimeout = transportSettings.OperationTimeout;
+            _openTimeout = transportSettings.OpenTimeout;
+
             _desiredPropertyListener = desiredPropertyListener;
             DeviceIdentity deviceIdentity = new DeviceIdentity(connectionString, transportSettings, context.Get<ProductInfo>());
-            _amqpUnit = AmqpUnitManager.GetInstance().CreateAmqpUnit(
+
+            _amqpUnit = AmqpIoTSessionFactory.GetInstance().CreateAmqpUnit(
                 deviceIdentity,
                 methodHandler,
                 TwinMessageListener, 

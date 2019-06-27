@@ -12,6 +12,8 @@ using Microsoft.Azure.Devices.Client.Transport.Amqp;
 
 namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT
 {
+    // TODO: Merge into AmqpTransportHandler
+
     internal class AmqpUnit : IDisposable
     {
         // If the first argument is set to true, we are disconnecting gracefully via CloseAsync.
