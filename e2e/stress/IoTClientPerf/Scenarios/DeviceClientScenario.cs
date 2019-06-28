@@ -28,6 +28,9 @@ namespace Microsoft.Azure.Devices.E2ETests
         private SemaphoreSlim _methodSemaphore = new SemaphoreSlim(1);
         private static readonly MethodResponse s_methodResponse = new MethodResponse(200);
 
+        private TelemetryMetrics _connectionStatusChanged = new TelemetryMetrics();
+        private SemaphoreSlim _connectionStatusChangedSemaphore = new SemaphoreSlim(1);
+        
         private byte[] _messageBytes;
 
         private bool _pooled;
@@ -94,9 +97,16 @@ namespace Microsoft.Azure.Devices.E2ETests
                 throw new NotImplementedException($"Not implemented for authType {_authType}");
             }
 
+            _dc.SetConnectionStatusChangesHandler(OnConnectionStatusChanged);
+
             _m.ExecuteTime = _sw.ElapsedMilliseconds;
             _m.ScheduleTime = null; // sync operation
             await _writer.WriteAsync(_m).ConfigureAwait(false);
+        }
+
+        private void OnConnectionStatusChanged(ConnectionStatus status, ConnectionStatusChangeReason reason)
+        {
+            throw new NotImplementedException();
         }
 
         protected async Task OpenDeviceAsync(CancellationToken ct)
