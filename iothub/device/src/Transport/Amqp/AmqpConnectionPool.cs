@@ -12,14 +12,14 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
     internal class AmqpConnectionPool : IAmqpUnitManager
     {
         private const int MaxSpan = int.MaxValue;
-        private readonly List<IAmqpConnectionHolder> AmqpSasIndividualPool;
-        private readonly IDictionary<string, List<IAmqpConnectionHolder>> AmqpSasGroupedPool;
+        private ISet<IAmqpConnectionHolder> AmqpSasIndividualPool;
+        private IDictionary<string, ISet<IAmqpConnectionHolder>> AmqpSasGroupedPool;
         private readonly object Lock;
 
         internal AmqpConnectionPool()
         {
-            AmqpSasIndividualPool = new List<IAmqpConnectionHolder>();
-            AmqpSasGroupedPool = new Dictionary<string, List<IAmqpConnectionHolder>>();
+            AmqpSasIndividualPool = new HashSet<IAmqpConnectionHolder>();
+            AmqpSasGroupedPool = new Dictionary<string, ISet<IAmqpConnectionHolder>>();
             Lock = new object();
         }
 
@@ -35,16 +35,17 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                 IAmqpConnectionHolder amqpConnectionHolder;
                 lock (Lock)
                 {
-                    List<IAmqpConnectionHolder> amqpConnectionHolders = ResolveConnectionGroup(deviceIdentity, true);
+                    ISet<IAmqpConnectionHolder> amqpConnectionHolders = ResolveConnectionGroup(deviceIdentity, true);
                     if (amqpConnectionHolders.Count < deviceIdentity.AmqpTransportSettings.AmqpConnectionPoolSettings.MaxPoolSize)
                     {
                         amqpConnectionHolder = new AmqpConnectionHolder(deviceIdentity);
+                        amqpConnectionHolder.OnConnectionDisconnected += (o, args) => RemoveConnection(amqpConnectionHolders, o as IAmqpConnectionHolder);
                         amqpConnectionHolders.Add(amqpConnectionHolder);
                         if (Logging.IsEnabled) Logging.Associate(this, amqpConnectionHolder, "amqpConnectionHolders");
                     }
                     else
                     {
-                        amqpConnectionHolder = GetConsistentHashConnection(amqpConnectionHolders, deviceIdentity);
+                        amqpConnectionHolder = GetLeastUsedConnection(amqpConnectionHolders);
                     }
                 }
                 if (Logging.IsEnabled) Logging.Exit(this, deviceIdentity, $"{nameof(CreateAmqpUnit)}");
@@ -58,7 +59,17 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             }
         }
 
-        private List<IAmqpConnectionHolder> ResolveConnectionGroup(DeviceIdentity deviceIdentity, bool create)
+        private void RemoveConnection(ISet<IAmqpConnectionHolder> amqpConnectionHolders, IAmqpConnectionHolder amqpConnectionHolder)
+        {
+            lock (Lock)
+            {
+                
+                bool removed = amqpConnectionHolder.GetNumberOfUnits() == 0 && amqpConnectionHolders.Remove(amqpConnectionHolder);
+                if (Logging.IsEnabled) Logging.Info(this, $"Remove ConnectionHolder {amqpConnectionHolder}: {removed}");
+            }
+        }
+
+        private ISet<IAmqpConnectionHolder> ResolveConnectionGroup(DeviceIdentity deviceIdentity, bool create)
         {
             if (deviceIdentity.AuthenticationModel == AuthenticationModel.SasIndividual)
             {
@@ -67,30 +78,41 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             else
             {
                 string scope = deviceIdentity.IotHubConnectionString.SharedAccessKeyName;
-                AmqpSasGroupedPool.TryGetValue(scope, out List<IAmqpConnectionHolder>  amqpConnectionHolders);
+                AmqpSasGroupedPool.TryGetValue(scope, out ISet<IAmqpConnectionHolder>  amqpConnectionHolders);
                 if (create && amqpConnectionHolders == null)
                 {
-                    amqpConnectionHolders = new List<IAmqpConnectionHolder>();
+                    amqpConnectionHolders = new HashSet<IAmqpConnectionHolder>();
                     AmqpSasGroupedPool.Add(scope, amqpConnectionHolders);
                 }
                 return amqpConnectionHolders;
             }
         }
         
-        private IAmqpConnectionHolder GetConsistentHashConnection(List<IAmqpConnectionHolder> pool, DeviceIdentity deviceIdentity)
+        private IAmqpConnectionHolder GetLeastUsedConnection(ISet<IAmqpConnectionHolder> amqpConnectionHolders)
         {
-            if (Logging.IsEnabled) Logging.Enter(this, deviceIdentity, $"{nameof(GetConsistentHashConnection)}");
+            if (Logging.IsEnabled) Logging.Enter(this, $"{nameof(GetLeastUsedConnection)}");
 
-            int poolSize = pool.Count;
-            int index = Math.Abs(deviceIdentity.GetHashCode()) % poolSize;
+            int count = MaxSpan;
 
-            if (pool[index] == null)
+            IAmqpConnectionHolder amqpConnectionHolder = null;
+
+            foreach (IAmqpConnectionHolder value in amqpConnectionHolders)
             {
-                pool[index] = new AmqpConnectionHolder(deviceIdentity);
+                int clientCount = value.GetNumberOfUnits();
+                if (clientCount < count)
+                {
+                    amqpConnectionHolder = value;
+                    count = clientCount;
+                    if (count == 0)
+                    {
+                        break;
+                    }
+                }
             }
 
-            if (Logging.IsEnabled) Logging.Exit(this, deviceIdentity, $"{nameof(GetConsistentHashConnection)}");
-            return pool[index];
+            if (Logging.IsEnabled) Logging.Exit(this, $"{nameof(GetLeastUsedConnection)}");
+            return amqpConnectionHolder;
         }
+
     }
 }
