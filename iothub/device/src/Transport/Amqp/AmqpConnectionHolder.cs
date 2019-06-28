@@ -10,6 +10,7 @@ using Microsoft.Azure.Devices.Shared;
 using Microsoft.Azure.Devices.Client.Exceptions;
 using Microsoft.Azure.Devices.Client.Extensions;
 using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
+using System.Diagnostics;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
@@ -71,16 +72,26 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         private void OnConnectionClosed(object o, EventArgs args)
         {
             if (Logging.IsEnabled) Logging.Enter(this, o, $"{nameof(OnConnectionClosed)}");
-            if (_amqpIoTConnection != null && ReferenceEquals(_amqpIoTConnection, o))
+            try
             {
-                _amqpAuthenticationRefresher?.StopLoop();
-                foreach (AmqpUnit unit in _amqpUnits.Values)
+                if (_amqpIoTConnection != null && ReferenceEquals(_amqpIoTConnection, o))
                 {
-                    unit.OnConnectionDisconnected();
+                    _amqpAuthenticationRefresher?.StopLoop();
+                    foreach (AmqpUnit unit in _amqpUnits.Values)
+                    {
+                        unit.OnConnectionDisconnected();
+                    }
                 }
-                _amqpUnits.Clear();
-                OnConnectionDisconnected?.Invoke(this, EventArgs.Empty);
             }
+            catch (Exception ex) when (!ex.IsFatal())
+            {
+                if (Logging.IsEnabled) Logging.Error(this, o, $"{nameof(OnConnectionClosed)}: {ex}");
+            }
+            finally
+            {
+                _amqpUnits.Clear();
+            }
+
             if (Logging.IsEnabled) Logging.Exit(this, o, $"{nameof(OnConnectionClosed)}");
         }
 
@@ -99,8 +110,15 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         private void Shutdown()
         {
             if (Logging.IsEnabled) Logging.Enter(this, _amqpIoTConnection, $"{nameof(Shutdown)}");
-            _amqpIoTConnection?.Abort();
-            OnConnectionClosed(this, EventArgs.Empty);
+            try
+            {
+                _amqpIoTConnection?.Abort();
+            }
+            catch (Exception ex) when (!ex.IsFatal())
+            {
+                if (Logging.IsEnabled) Logging.Error(this, _amqpIoTConnection, $"{nameof(Shutdown)} {ex}");
+            }
+
             if (Logging.IsEnabled) Logging.Exit(this, _amqpIoTConnection, $"{nameof(Shutdown)}");
         }
 
@@ -172,7 +190,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             }
             try
             {
-                if (_amqpIoTConnection == null)
+                if (_amqpIoTConnection == null || _amqpIoTConnection.IsClosing())
                 {
                     if (Logging.IsEnabled) Logging.Info(this, "Creating new AmqpConnection", $"{nameof(EnsureConnection)}");
                     // Create AmqpConnection
@@ -197,16 +215,16 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                             await amqpAuthenticationRefresher.InitLoopAsync(timeout).ConfigureAwait(false);
                         }
                     }
+
                     _amqpIoTConnection = amqpIoTConnection;
                     _amqpIoTCbsLink = amqpIoTCbsLink;
                     _amqpAuthenticationRefresher = amqpAuthenticationRefresher;
-                    _amqpIoTConnection.Closed += OnConnectionClosed;
+                    
                     if (Logging.IsEnabled) Logging.Associate(this, _amqpIoTConnection, $"{nameof(_amqpIoTConnection)}");
                     if (Logging.IsEnabled) Logging.Associate(this, _amqpIoTCbsLink, $"{nameof(_amqpIoTCbsLink)}");
-                }
-                else if (_amqpIoTConnection.IsClosing())
-                {
-                    throw new IotHubCommunicationException("AMQP connection is closing.");
+
+                    if (_amqpIoTConnection.IsClosing()) throw new IotHubCommunicationException("AMQP connection is closing.");
+                    _amqpIoTConnection.Closed += OnConnectionClosed;
                 }
                 else
                 {
