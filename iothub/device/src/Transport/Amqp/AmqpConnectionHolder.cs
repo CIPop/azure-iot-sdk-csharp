@@ -99,9 +99,8 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         private void Shutdown()
         {
             if (Logging.IsEnabled) Logging.Enter(this, _amqpIoTConnection, $"{nameof(Shutdown)}");
-            _amqpAuthenticationRefresher?.StopLoop();
             _amqpIoTConnection?.Abort();
-            OnConnectionDisconnected?.Invoke(this, EventArgs.Empty);
+            OnConnectionClosed(this, EventArgs.Empty);
             if (Logging.IsEnabled) Logging.Exit(this, _amqpIoTConnection, $"{nameof(Shutdown)}");
         }
 
