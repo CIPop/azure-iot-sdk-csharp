@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT
 
         internal void Abort()
         {
-            AmqpSession.Abort();
+            AmqpSession.SafeClose();
         }
 
         #region Telemetry links

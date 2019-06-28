@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT
         internal void Abort()
         {
             if (Logging.IsEnabled) Logging.Enter(this, $"{nameof(Abort)}");
-            _sendingAmqpLink.Abort();
+            _sendingAmqpLink.SafeClose();
         }
 
         #region Telemetry handling

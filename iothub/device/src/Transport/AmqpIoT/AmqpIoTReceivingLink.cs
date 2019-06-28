@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT
 
         internal void Abort()
         {
-            _receivingAmqpLink.Abort();
+            _receivingAmqpLink.SafeClose();
         }
 
         #region Receive Message
