@@ -54,10 +54,10 @@ namespace Microsoft.Azure.Devices.E2ETests
                     "Devices connecting to IoT Hub then using multiple features.",
                     (c) => {return new DeviceAllTest(c);})},
 
-            { "device_all_openclose",
+            { "device_all_noretry",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(
-                    "Like device_all but devices keep connecting and disconnecting.",
-                    (c) => {return new DeviceAllOpenCloseTest(c);})},
+                    "Like device_all but will disable retries and create a new DeviceClient when the previous enters a faulted state.",
+                    (c) => {return new DeviceAllNoRetry(c);})},
 
             { "baseline_noop",
                 new Tuple<string, Func<PerfScenarioConfig, PerfScenario>>(

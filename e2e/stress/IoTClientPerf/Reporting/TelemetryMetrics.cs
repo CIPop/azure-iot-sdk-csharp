@@ -17,6 +17,11 @@ namespace Microsoft.Azure.Devices.E2ETests
         public const string DeviceOperationMethodEnable = "device_method_enable";
         public const string DeviceOperationMethodCalled = "device_method_called";
 
+        public const string DeviceStateConnected = "device_state_connected";
+        public const string DeviceStateDisconnected = "device_state_disconnected";
+        public const string DeviceStateDisconnectedRetrying = "device_state_disconnected_retrying";
+        public const string DeviceStateUnknown = "device_state_unknown";
+        
         public const string ServiceOperationCreate = "service_create";
         public const string ServiceOperationOpen = "service_open";
         public const string ServiceOperationClose = "service_close";
