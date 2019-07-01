@@ -72,28 +72,34 @@ namespace Microsoft.Azure.Devices.E2ETests
 
             while (true)
             {
+                Task statUpdateTask = Task.Delay(StatUpdateIntervalMilliseconds);
+                tasks.Add(statUpdateTask);
+
                 Task finished = await Task.WhenAny(tasks).ConfigureAwait(false);
                 tasks.Remove(finished);
 
-                switch (finished.Status)
+                if (finished != statUpdateTask) // Do not count the timeout task as status.
                 {
-                    case TaskStatus.Canceled:
-                        statInterimCancelled++;
-                        break;
-                    case TaskStatus.Faulted:
-                        statInterimFaulted++;
-                        break;
-                    case TaskStatus.RanToCompletion:
-                        statInterimCompleted++;
-                        break;
-                    case TaskStatus.Running:
-                    case TaskStatus.WaitingForActivation:
-                    case TaskStatus.WaitingForChildrenToComplete:
-                    case TaskStatus.Created:
-                    case TaskStatus.WaitingToRun:
-                    default:
-                        Debug.Fail($"Invalid completed task state {finished.Status}");
-                        break;
+                    switch (finished.Status)
+                    {
+                        case TaskStatus.Canceled:
+                            statInterimCancelled++;
+                            break;
+                        case TaskStatus.Faulted:
+                            statInterimFaulted++;
+                            break;
+                        case TaskStatus.RanToCompletion:
+                            statInterimCompleted++;
+                            break;
+                        case TaskStatus.Running:
+                        case TaskStatus.WaitingForActivation:
+                        case TaskStatus.WaitingForChildrenToComplete:
+                        case TaskStatus.Created:
+                        case TaskStatus.WaitingToRun:
+                        default:
+                            Debug.Fail($"Invalid completed task state {finished.Status}");
+                            break;
+                    }
                 }
 
                 if ((statInterimSw.Elapsed.TotalMilliseconds > _statisticsUpdateIntervalMilliseconds) ||
