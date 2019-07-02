@@ -60,6 +60,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             statInterimSw.Start();
 
             var tasks = new List<Task>(actualParallel);
+            var removeList = new List<Task>(actualParallel);
 
             // Start first batch of parallel tests.
             for (; currentInstance < actualParallel; currentInstance++)
@@ -68,38 +69,58 @@ namespace Microsoft.Azure.Devices.E2ETests
                 tasks.Add(_operation(_tests[currentInstance]));
             }
 
+            // Add a status update task to ensure the TUI is not blocked:
+            Task statUpdateTask = Task.Delay(StatUpdateIntervalMilliseconds);
+            tasks.Add(statUpdateTask);
+
             bool drain = false;
 
             while (true)
             {
-                Task statUpdateTask = Task.Delay(StatUpdateIntervalMilliseconds);
-                tasks.Add(statUpdateTask);
+                await Task.WhenAny(tasks).ConfigureAwait(false);
 
-                Task finished = await Task.WhenAny(tasks).ConfigureAwait(false);
-                tasks.Remove(finished);
+                // Remove all that finished without iterating through WhenAny
+                removeList.Clear();
 
-                if (finished != statUpdateTask) // Do not count the timeout task as status.
+                foreach (Task finished in tasks)
                 {
-                    switch (finished.Status)
+                    if (finished.IsCompleted)
                     {
-                        case TaskStatus.Canceled:
-                            statInterimCancelled++;
-                            break;
-                        case TaskStatus.Faulted:
-                            statInterimFaulted++;
-                            break;
-                        case TaskStatus.RanToCompletion:
-                            statInterimCompleted++;
-                            break;
-                        case TaskStatus.Running:
-                        case TaskStatus.WaitingForActivation:
-                        case TaskStatus.WaitingForChildrenToComplete:
-                        case TaskStatus.Created:
-                        case TaskStatus.WaitingToRun:
-                        default:
-                            Debug.Fail($"Invalid completed task state {finished.Status}");
-                            break;
+                        removeList.Add(finished);
+
+                        if (finished != statUpdateTask) // Do not count the timeout task as status.
+                        {
+                            switch (finished.Status)
+                            {
+                                case TaskStatus.Canceled:
+                                    statInterimCancelled++;
+                                    break;
+                                case TaskStatus.Faulted:
+                                    statInterimFaulted++;
+                                    break;
+                                case TaskStatus.RanToCompletion:
+                                    statInterimCompleted++;
+                                    break;
+                                case TaskStatus.Running:
+                                case TaskStatus.WaitingForActivation:
+                                case TaskStatus.WaitingForChildrenToComplete:
+                                case TaskStatus.Created:
+                                case TaskStatus.WaitingToRun:
+                                default:
+                                    Debug.Fail($"Invalid completed task state {finished.Status}");
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            statUpdateTask = null;
+                        }
                     }
+                }
+
+                foreach (Task toRemove in removeList)
+                {
+                    tasks.Remove(toRemove);
                 }
 
                 if ((statInterimSw.Elapsed.TotalMilliseconds > _statisticsUpdateIntervalMilliseconds) ||
@@ -124,22 +145,37 @@ namespace Microsoft.Azure.Devices.E2ETests
 
                 if (ct.IsCancellationRequested) drain = true;
 
-                if (!drain && (currentInstance >= _tests.Length))
-                {
-                    if (runOnce)
-                    {
-                        drain = true;
-                    }
-                    else
-                    {
-                        currentInstance = 0;
-                    }
-                }
-
                 if (!drain)
                 {
-                    tasks.Add(_operation(_tests[currentInstance]));
-                    currentInstance++;
+                    int toAdd = actualParallel - tasks.Count;
+
+                    for (int i = 0; i < toAdd; i++)
+                    {
+                        // Detect if we went once through all tests.
+                        if (currentInstance >= _tests.Length)
+                        {
+                            if (runOnce)
+                            {
+                                drain = true;
+                            }
+                            else
+                            {
+                                currentInstance = 0;
+                            }
+                        }
+
+                        // We ran to end - stop adding new tests.
+                        if (drain) break;
+
+                        tasks.Add(_operation(_tests[currentInstance]));
+                        currentInstance++;
+                    }
+
+                    if (statUpdateTask == null)
+                    {
+                        statUpdateTask = Task.Delay(StatUpdateIntervalMilliseconds);
+                        tasks.Add(statUpdateTask);
+                    }
                 }
                 else
                 {

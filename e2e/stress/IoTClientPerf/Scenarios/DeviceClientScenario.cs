@@ -126,13 +126,16 @@ namespace Microsoft.Azure.Devices.E2ETests
                 switch (status)
                 {
                     case ConnectionStatus.Disconnected:
+                        SystemMetrics.DeviceDisconnected();
                         _mConnectionStatus.OperationType = TelemetryMetrics.DeviceStateDisconnected;
                         _waitForDisconnectSemaphore.Release();
                         break;
                     case ConnectionStatus.Connected:
+                        SystemMetrics.DeviceConnected();
                         _mConnectionStatus.OperationType = TelemetryMetrics.DeviceStateConnected;
                         break;
                     case ConnectionStatus.Disconnected_Retrying:
+                        SystemMetrics.DeviceDisconnected();
                         _mConnectionStatus.OperationType = TelemetryMetrics.DeviceStateDisconnectedRetrying;
                         _waitForDisconnectSemaphore.Release();
                         break;

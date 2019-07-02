@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Devices.E2ETests
             Add(sb, ScheduleTime);
             Add(sb, ExecuteTime);
 
-            SystemMetrics.GetMetrics(out int cpuPercent, out long memoryBytes, out long gcBytes, out long tcpConn);
+            SystemMetrics.GetMetrics(out int cpuPercent, out long memoryBytes, out long gcBytes, out long tcpConn, out long devConn);
 
             Add(sb, cpuPercent);
             Add(sb, memoryBytes);
