@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             lock (Lock)
             {
                 
-                bool removed = amqpConnectionHolder.GetNumberOfUnits() == 0 && amqpConnectionHolders.Remove(amqpConnectionHolder);
+                bool removed = amqpConnectionHolders.Remove(amqpConnectionHolder);
                 if (Logging.IsEnabled) Logging.Info(this, $"Remove ConnectionHolder {amqpConnectionHolder}: {removed}");
             }
         }
