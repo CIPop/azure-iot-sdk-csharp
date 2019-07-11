@@ -37,6 +37,10 @@ namespace Microsoft.Azure.Devices.E2ETests
                 await SetupAsync(ct).ConfigureAwait(false);
                 SetupTasks(ct);
             }
+            else
+            {
+                completedTask.GetAwaiter().GetResult();
+            }
         }
 
         private void SetupTasks(CancellationToken ct)

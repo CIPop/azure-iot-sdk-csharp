@@ -2,7 +2,7 @@
   "profiles": {
     "IoTClientPerf": {
       "commandName": "Project",
-      "commandLineArgs": "-o device.csv -t 60 -n 10 -f device_c2d"
+      "commandLineArgs": "-t 6000 -o s:\\tmp\\vs_client.csv -n 500 -a sas -p amqp -c 4 -l 100 -f device_all_noretry"
     }
   }
 }
