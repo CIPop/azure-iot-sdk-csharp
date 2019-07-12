@@ -9,14 +9,14 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
-    internal class AmqpConnectionPool : IAmqpUnitManager
+    internal class AmqpIoTConnectionPool : IAmqpUnitManager
     {
         private const int MaxSpan = int.MaxValue;
         private ISet<IAmqpConnectionHolder> AmqpSasIndividualPool;
         private IDictionary<string, ISet<IAmqpConnectionHolder>> AmqpSasGroupedPool;
         private readonly object Lock;
 
-        internal AmqpConnectionPool()
+        internal AmqpIoTConnectionPool()
         {
             AmqpSasIndividualPool = new HashSet<IAmqpConnectionHolder>();
             AmqpSasGroupedPool = new Dictionary<string, ISet<IAmqpConnectionHolder>>();
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                     ISet<IAmqpConnectionHolder> amqpConnectionHolders = ResolveConnectionGroup(deviceIdentity, true);
                     if (amqpConnectionHolders.Count < deviceIdentity.AmqpTransportSettings.AmqpConnectionPoolSettings.MaxPoolSize)
                     {
-                        amqpConnectionHolder = new AmqpConnectionHolder(deviceIdentity);
+                        amqpConnectionHolder = new AmqpIoTConnection(deviceIdentity);
                         amqpConnectionHolder.OnConnectionDisconnected += (o, args) => RemoveConnection(amqpConnectionHolders, o as IAmqpConnectionHolder);
                         amqpConnectionHolders.Add(amqpConnectionHolder);
                         if (Logging.IsEnabled) Logging.Associate(this, amqpConnectionHolder, "amqpConnectionHolders");
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             else
             {
                 if (Logging.IsEnabled) Logging.Exit(this, deviceIdentity, $"{nameof(CreateAmqpUnit)}");
-                return new AmqpConnectionHolder(deviceIdentity)
+                return new AmqpIoTConnection(deviceIdentity)
                     .CreateAmqpUnit(deviceIdentity, methodHandler, twinMessageListener, eventListener);
             }
         }

@@ -9,30 +9,31 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
-    internal class AmqpIoTSessionFactory: IDisposable
+    internal class AmqpIoTSessionFactory
     {
         private static readonly AmqpIoTSessionFactory s_instance = new AmqpIoTSessionFactory();
 
-        private IDictionary<string, IAmqpUnitManager> _amqpConnectionPools;
+        private IDictionary<string, AmqpIoTConnectionPool> _amqpConnectionPools = new Dictionary<string, AmqpIoTConnectionPool>();
         private readonly object _lock = new object();
         private bool _disposed;
 
-        internal AmqpUnitManager()
+        internal AmqpIoTSessionFactory()
         {
-            _amqpConnectionPools = new Dictionary<string, IAmqpUnitManager>();
         }
+
         internal static AmqpIoTSessionFactory GetInstance()
         {
             return s_instance;
         }
 
-        public AmqpUnit CreateAmqpUnit(
+        // TODO: this should return AmqpIoTSession.
+        public AmqpUnit GetAmqpIoTSession(
             DeviceIdentity deviceIdentity,
             Func<MethodRequestInternal, Task> methodHandler,
             Action<Twin, string, TwinCollection> twinMessageListener,
             Func<string, Message, Task> eventListener)
         {
-            IAmqpUnitManager amqpConnectionPool = ResolveConnectionPool(deviceIdentity.IotHubConnectionString.HostName);
+            AmqpIoTConnectionPool amqpConnectionPool = ResolveConnectionPool(deviceIdentity.IotHubConnectionString.HostName);
             return amqpConnectionPool.CreateAmqpUnit(
                 deviceIdentity,
                 methodHandler,
@@ -40,39 +41,20 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                 eventListener);
         }
 
-        private IAmqpUnitManager ResolveConnectionPool(string host)
+        private AmqpUnit ResolveConnectionPool(string host)
         {
             lock (_lock)
             {
                 _amqpConnectionPools.TryGetValue(host, out IAmqpUnitManager amqpConnectionPool);
                 if (amqpConnectionPool == null)
                 {
-                    amqpConnectionPool = new AmqpConnectionPool();
+                    amqpConnectionPool = new AmqpIoTConnectionPool();
                     _amqpConnectionPools.Add(host, amqpConnectionPool);
                 }
 
                 if (Logging.IsEnabled) Logging.Associate(this, amqpConnectionPool, $"{nameof(ResolveConnectionPool)}");
                 return amqpConnectionPool;
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-
-            if (disposing)
-            {
-                if (Logging.IsEnabled) Logging.Info(this, disposing, $"{nameof(Dispose)}");
-                _amqpConnectionPools.Clear();
-            }
-
-            _disposed = true;
         }
     }
 }

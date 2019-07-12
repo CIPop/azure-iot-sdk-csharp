@@ -11,7 +11,7 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
-    internal class AmqpAuthenticationRefresher : IAmqpIoTAuthenticationRefresher, IDisposable
+    internal class AmqpAuthenticationRefresher : IDisposable
     {
         private static readonly string[] AccessRightsStringArray = AccessRightsHelper.AccessRightsToStringArray(AccessRights.DeviceConnect);
         private readonly AmqpIoTCbsLink AmqpIoTCbsLink;

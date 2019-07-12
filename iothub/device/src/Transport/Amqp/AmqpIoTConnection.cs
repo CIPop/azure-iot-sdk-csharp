@@ -13,19 +13,19 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
-    internal class AmqpConnectionHolder : IAmqpConnectionHolder, IAmqpSessionCreator, IAmqpTokenRefresherCreator, IDisposable
+    internal class AmqpIoTConnection : IDisposable
     {
         public event EventHandler OnConnectionDisconnected;
         private readonly DeviceIdentity _deviceIdentity;
         private readonly AmqpConnector _amqpIoTConnector;
         private readonly SemaphoreSlim _lock;
         private readonly IDictionary<DeviceIdentity, AmqpUnit> _amqpUnits;
-        private AmqpIoTConnection _amqpIoTConnection;
-        private IAmqpIoTAuthenticationRefresher _amqpAuthenticationRefresher;
+        private AmqpIoT.AmqpIoTConnection _amqpIoTConnection;
+        private AmqpIoTAuthenticationRefresher _amqpAuthenticationRefresher;
         private AmqpIoTCbsLink _amqpIoTCbsLink;
         private bool _disposed;
 
-        public AmqpConnectionHolder(DeviceIdentity deviceIdentity)
+        public AmqpIoTConnection(DeviceIdentity deviceIdentity)
         {
             _deviceIdentity = deviceIdentity;
             _amqpIoTConnector = new AmqpConnector(deviceIdentity.AmqpTransportSettings, deviceIdentity.IotHubConnectionString.HostName);
@@ -151,7 +151,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         public async Task<AmqpIoTSession> CreateSession(DeviceIdentity deviceIdentity, TimeSpan timeout)
         {
             if (Logging.IsEnabled) Logging.Enter(this, deviceIdentity, timeout, $"{nameof(CreateSession)}");
-            AmqpIoTConnection amqpIoTConnection = await EnsureConnection(timeout).ConfigureAwait(false);
+            AmqpIoT.AmqpIoTConnection amqpIoTConnection = await EnsureConnection(timeout).ConfigureAwait(false);
 
             AmqpIoTSession amqpIoTSession = amqpIoTConnection.AddSession();
 
@@ -160,10 +160,10 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             return amqpIoTSession;
         }
 
-        public async Task<AmqpIoTConnection> EnsureConnection(TimeSpan timeout)
+        public async Task<AmqpIoT.AmqpIoTConnection> EnsureConnection(TimeSpan timeout)
         {
             if (Logging.IsEnabled) Logging.Enter(this, timeout, $"{nameof(EnsureConnection)}");
-            AmqpIoTConnection amqpIoTConnection = null;
+            AmqpIoT.AmqpIoTConnection amqpIoTConnection = null;
             IAmqpIoTAuthenticationRefresher amqpAuthenticationRefresher = null;
             AmqpIoTCbsLink amqpIoTCbsLink = null;
             bool gain = await _lock.WaitAsync(timeout).ConfigureAwait(false);

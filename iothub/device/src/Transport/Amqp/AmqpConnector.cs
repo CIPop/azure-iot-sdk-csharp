@@ -18,17 +18,17 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         const string DisableServerCertificateValidationKeyName = "Microsoft.Azure.Devices.DisableServerCertificateValidation";
         static readonly bool DisableServerCertificateValidation = InitializeDisableServerCertificateValidation();
 
-        private AmqpIoTConnection _amqpIoTConnection;
+        private AmqpIoT.AmqpIoTConnection _amqpIoTConnection;
         private bool _disposed;
 
         internal AmqpConnector(AmqpTransportSettings amqpTransportSettings, string hostName)
         {
-            _amqpIoTConnection = new AmqpIoTConnection(amqpTransportSettings, hostName, DisableServerCertificateValidation);
+            _amqpIoTConnection = new AmqpIoT.AmqpIoTConnection(amqpTransportSettings, hostName, DisableServerCertificateValidation);
         }
         #endregion
 
         #region Open-Close
-        public async Task<AmqpIoTConnection> OpenConnectionAsync(TimeSpan timeout)
+        public async Task<AmqpIoT.AmqpIoTConnection> OpenConnectionAsync(TimeSpan timeout)
         {
             if (Logging.IsEnabled) Logging.Enter(this, timeout, $"{nameof(OpenConnectionAsync)}");
 

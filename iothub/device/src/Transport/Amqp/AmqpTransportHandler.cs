@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             _desiredPropertyListener = desiredPropertyListener;
             DeviceIdentity deviceIdentity = new DeviceIdentity(connectionString, transportSettings, context.Get<ProductInfo>());
 
-            _amqpUnit = AmqpIoTSessionFactory.GetInstance().CreateAmqpUnit(
+            _amqpUnit = AmqpIoTSessionFactory.GetInstance().GetAmqpIoTSession(
                 deviceIdentity,
                 methodHandler,
                 TwinMessageListener, 
