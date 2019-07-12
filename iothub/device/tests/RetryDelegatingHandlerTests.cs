@@ -354,6 +354,19 @@ namespace Microsoft.Azure.Devices.Client.Test
             await sut.RejectAsync(Arg.Any<string>(), cancellationTokenSource.Token).ExpectedAsync<TaskCanceledException>().ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public async Task HandleDisconnect_FailsToOpenAsync_StopsRetrying()
+        {
+            var innerHandlerMock = Substitute.For<TransportHandler>();
+            //innerHandlerMock.OpenAsync(CancellationToken.None).ReturnsForAnyArgs(x => { throw new Exception(); });
+            var contextMock = Substitute.For<IPipelineContext>();
+
+            var handler = new RetryDelegatingHandler(contextMock, innerHandlerMock);
+
+            await handler.OpenAsync(CancellationToken.None).ConfigureAwait(false);
+            
+        }
+
         class NotSeekableStream : MemoryStream
         {
             public override bool CanSeek => false;

@@ -518,7 +518,7 @@ namespace Microsoft.Azure.Devices.Client.Transport
             {
                 // Canceled when the transport is being closed by the application.
                 if (Logging.IsEnabled) Logging.Info(this, "Transport disconnected: closed by application.", nameof(HandleDisconnect));
-                _onConnectionStatusChanged(ConnectionStatus.Disabled, ConnectionStatusChangeReason.Client_Close);
+                _onConnectionStatusChanged(ConnectionStatus.Disconnected, ConnectionStatusChangeReason.Client_Close);
 
                 return;
             }
@@ -582,13 +582,11 @@ namespace Microsoft.Azure.Devices.Client.Transport
             catch (Exception ex)
             {
                 if (Logging.IsEnabled) Logging.Error(this, ex.ToString(), nameof(HandleDisconnect));
-
-                var hubException = ex as IotHubException;
-                if (hubException != null) HandleConnectionStatusExceptions(hubException);
+                
+                HandleConnectionStatusExceptions(ex);
 
                 // We were not able to recover the connection or subscriptions within the configured policy.
-                // The object will be placed in an unusable state.
-                Dispose(true);
+                // We are giving up on retry but we will allow future operations to perform implicit open.
             }
             finally
             {
@@ -596,21 +594,25 @@ namespace Microsoft.Azure.Devices.Client.Transport
             }
         }
 
-        private void HandleConnectionStatusExceptions(IotHubException hubException)
+        private void HandleConnectionStatusExceptions(Exception ex)
         {
             ConnectionStatusChangeReason status = ConnectionStatusChangeReason.Communication_Error;
 
-            if (hubException.IsTransient)
+            var hubException = ex as IotHubException;
+            if (hubException != null)
             {
-                status = ConnectionStatusChangeReason.Retry_Expired;
-            }
-            else if (hubException is UnauthorizedException)
-            {
-                status = ConnectionStatusChangeReason.Bad_Credential;
-            }
-            else if (hubException is DeviceDisabledException)
-            {
-                status = ConnectionStatusChangeReason.Device_Disabled;
+                if (hubException.IsTransient)
+                {
+                    status = ConnectionStatusChangeReason.Retry_Expired;
+                }
+                else if (hubException is UnauthorizedException)
+                {
+                    status = ConnectionStatusChangeReason.Bad_Credential;
+                }
+                else if (hubException is DeviceDisabledException)
+                {
+                    status = ConnectionStatusChangeReason.Device_Disabled;
+                }
             }
 
             _onConnectionStatusChanged(ConnectionStatus.Disconnected, status);
