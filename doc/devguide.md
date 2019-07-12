@@ -8,6 +8,9 @@ Before starting development on the Azure IoT SDK for C# you will need to install
 
 ### Design
 We are following the [Azure SDK design specification for C#](https://azuresdkspecs.z5.web.core.windows.net/DotNetSpec.html). To preserve backward compatibility, existing code will not change to follow these rules.
+We keep the architectural design docs in the `./devdoc` folder.
+
+* [IoT Hub DeviceClient Architecture](devdoc/iothub/device/architecture.md)
 
 ### Code style
 Please read and apply our [coding style](coding-style.md) when proposing PRs against the Azure repository. When changing existing files, please apply changes to the entire file. Otherwise, maintain the same style.
