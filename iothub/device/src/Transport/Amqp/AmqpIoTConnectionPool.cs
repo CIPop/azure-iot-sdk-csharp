@@ -9,20 +9,19 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
-    internal class AmqpIoTConnectionPool : IAmqpUnitManager
+    internal class AmqpIoTConnectionPool
     {
-        private const int MaxSpan = int.MaxValue;
-        private ISet<IAmqpConnectionHolder> AmqpSasIndividualPool;
-        private IDictionary<string, ISet<IAmqpConnectionHolder>> AmqpSasGroupedPool;
-        private readonly object Lock;
+        private string _name;
+        private int _maxNumberOfConnections;
 
         internal AmqpIoTConnectionPool()
         {
-            AmqpSasIndividualPool = new HashSet<IAmqpConnectionHolder>();
-            AmqpSasGroupedPool = new Dictionary<string, ISet<IAmqpConnectionHolder>>();
-            Lock = new object();
         }
 
+
+
+
+#if false
         public AmqpUnit CreateAmqpUnit(
             DeviceIdentity deviceIdentity, 
             Func<MethodRequestInternal, Task> methodHandler, 
@@ -30,7 +29,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             Func<string, Message, Task> eventListener)
         {
             if (Logging.IsEnabled) Logging.Enter(this, deviceIdentity, $"{nameof(CreateAmqpUnit)}");
-            if (deviceIdentity.AuthenticationModel != AuthenticationModel.X509 && (deviceIdentity.AmqpTransportSettings?.AmqpConnectionPoolSettings?.Pooling??false))
+            if (deviceIdentity.AuthenticationModel != AuthenticationModel.X509Certificate && (deviceIdentity.AmqpTransportSettings?.AmqpConnectionPoolSettings?.Pooling??false))
             {
                 IAmqpConnectionHolder amqpConnectionHolder;
                 lock (Lock)
@@ -71,7 +70,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 
         private ISet<IAmqpConnectionHolder> ResolveConnectionGroup(DeviceIdentity deviceIdentity, bool create)
         {
-            if (deviceIdentity.AuthenticationModel == AuthenticationModel.SasIndividual)
+            if (deviceIdentity.AuthenticationModel == AuthenticationModel.SharedAccessKeyHubPolicy)
             {
                 return AmqpSasIndividualPool;
             }
@@ -113,6 +112,6 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             if (Logging.IsEnabled) Logging.Exit(this, $"{nameof(GetLeastUsedConnection)}");
             return amqpConnectionHolder;
         }
-
+#endif
     }
 }

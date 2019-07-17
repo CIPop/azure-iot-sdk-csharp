@@ -16,6 +16,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT
 
     internal class AmqpUnit : IDisposable
     {
+
         // If the first argument is set to true, we are disconnecting gracefully via CloseAsync.
         public event EventHandler OnUnitDisconnected;
         private readonly DeviceIdentity _deviceIdentity;
@@ -93,7 +94,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT
 
                 if (Logging.IsEnabled) Logging.Associate(this, _amqpIoTSession, $"{nameof(_amqpIoTSession)}");
                 await _amqpIoTSession.OpenAsync(timeout).ConfigureAwait(false);
-                if (_deviceIdentity.AuthenticationModel == AuthenticationModel.SasIndividual)
+                if (_deviceIdentity.AuthenticationModel == AuthenticationModel.SharedAccessKeyHubPolicy)
                 {
                     _amqpAuthenticationRefresher = await _amqpAuthenticationRefresherCreator.CreateRefresher(_deviceIdentity, timeout).ConfigureAwait(false);
                     if (Logging.IsEnabled) Logging.Associate(this, _amqpAuthenticationRefresher, $"{nameof(_amqpAuthenticationRefresher)}");

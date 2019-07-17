@@ -1,41 +1,48 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+using System;
 
 namespace Microsoft.Azure.Devices.Client
 {
-    using System;
-
     /// <summary>
-    /// contains Amqp Connection Pool settings for DeviceClient
+    /// Configuration for the AMQP IoTHub Transport.
     /// </summary>
-
     public sealed class AmqpConnectionPoolSettings
     {
-        static readonly TimeSpan DefaultConnectionIdleTimeout = TimeSpan.FromMinutes(2);
-        static readonly TimeSpan MinConnectionIdleTimeout = TimeSpan.FromSeconds(5);
-        const uint DefaultPoolSize = 100; // This will allow upto 100000 devices
-        const uint MaxNumberOfPools = ushort.MaxValue;
-        internal const uint MaxDevicesPerConnection = 995; // IotHub allows upto 999 tokens per connection. Setting the threshold just below that.
+        private static readonly TimeSpan DefaultConnectionIdleTimeout = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan MinConnectionIdleTimeout = TimeSpan.FromSeconds(5);
+        private const uint DefaultPoolSize = 100;
+        private const uint MaxNumberOfPools = ushort.MaxValue;
 
-        uint maxPoolSize;
-        TimeSpan connectionIdleTimeout;
+        private uint _maxPoolSize;
+        private TimeSpan _connectionIdleTimeout;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AmqpConnectionPoolSettings"/> class.
+        /// </summary>
         public AmqpConnectionPoolSettings()
         {
-            this.maxPoolSize = DefaultPoolSize;
+            this._maxPoolSize = DefaultPoolSize;
             this.Pooling = false;
-            this.connectionIdleTimeout = DefaultConnectionIdleTimeout;
+            this._connectionIdleTimeout = DefaultConnectionIdleTimeout;
         }
 
+        /// <summary>
+        /// Gets or sets the maximum size of the pool.
+        /// </summary>
+        /// <value>
+        /// The maximum size of the pool.
+        /// </value>
+        /// <exception cref="ArgumentOutOfRangeException">value</exception>
         public uint MaxPoolSize
         {
-            get { return this.maxPoolSize; }
+            get { return this._maxPoolSize; }
 
             set
             {
                 if (value > 0 && value <= MaxNumberOfPools)
                 {
-                    this.maxPoolSize = value;
+                    this._maxPoolSize = value;
                 }
                 else
                 {
@@ -48,19 +55,24 @@ namespace Microsoft.Azure.Devices.Client
 
         public TimeSpan ConnectionIdleTimeout
         {
-            get { return this.connectionIdleTimeout; }
+            get { return this._connectionIdleTimeout; }
 
             set
             {
                 if (value >= MinConnectionIdleTimeout)
                 {
-                    this.connectionIdleTimeout = value;
+                    this._connectionIdleTimeout = value;
                 }
                 else
                 {
                     throw new ArgumentOutOfRangeException("value");
                 }
             }
+        }
+
+        public string PoolName {
+            get;
+            set; // TODO: check upperCase/Lowercase only.
         }
 
         public bool Equals(AmqpConnectionPoolSettings other)

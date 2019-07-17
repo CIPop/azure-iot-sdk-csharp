@@ -6,6 +6,8 @@ namespace Microsoft.Azure.Devices.Client.Transport
 {
     internal enum AuthenticationModel
     {
-        SasGrouped, SasIndividual, X509
+        SharedAccessKeyIndividualIdentity,
+        SharedAccessKeyHubPolicy,
+        X509Certificate
     }
 }

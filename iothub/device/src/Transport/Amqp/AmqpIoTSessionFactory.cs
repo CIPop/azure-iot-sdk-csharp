@@ -6,16 +6,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
+using System.Diagnostics;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
     internal class AmqpIoTSessionFactory
     {
+        private const string PoolNameIndividualIdentityKey = "SAS";
+        private const string PoolNameHubPolicyKey = "SASPolicy";
+        private const string PoolNameX509Certificate = "X509";
+
         private static readonly AmqpIoTSessionFactory s_instance = new AmqpIoTSessionFactory();
 
-        private IDictionary<string, AmqpIoTConnectionPool> _amqpConnectionPools = new Dictionary<string, AmqpIoTConnectionPool>();
+        private Dictionary<string, AmqpIoTConnectionPool> _amqpConnectionPools = new Dictionary<string, AmqpIoTConnectionPool>();
         private readonly object _lock = new object();
-        private bool _disposed;
 
         internal AmqpIoTSessionFactory()
         {
@@ -27,34 +31,39 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         }
 
         // TODO: this should return AmqpIoTSession.
-        public AmqpUnit GetAmqpIoTSession(
-            DeviceIdentity deviceIdentity,
-            Func<MethodRequestInternal, Task> methodHandler,
-            Action<Twin, string, TwinCollection> twinMessageListener,
-            Func<string, Message, Task> eventListener)
+        // TODO: UT
+        public Task<AmqpIoTSession> GetAmqpIoTSessionAsync(
+            DeviceIdentity deviceIdentity)
         {
-            AmqpIoTConnectionPool amqpConnectionPool = ResolveConnectionPool(deviceIdentity.IotHubConnectionString.HostName);
-            return amqpConnectionPool.CreateAmqpUnit(
-                deviceIdentity,
-                methodHandler,
-                twinMessageListener,
-                eventListener);
+            string connectionPoolName = GetConnectionPoolName(deviceIdentity);
+
+            // 
+            throw new NotImplementedException();
         }
 
-        private AmqpUnit ResolveConnectionPool(string host)
+        private string GetConnectionPoolName(DeviceIdentity deviceIdentity)
         {
-            lock (_lock)
-            {
-                _amqpConnectionPools.TryGetValue(host, out IAmqpUnitManager amqpConnectionPool);
-                if (amqpConnectionPool == null)
-                {
-                    amqpConnectionPool = new AmqpIoTConnectionPool();
-                    _amqpConnectionPools.Add(host, amqpConnectionPool);
-                }
+            // TODO
+            string poolName = deviceIdentity.AmqpTransportSettings.AmqpConnectionPoolSettings.PoolName;
 
-                if (Logging.IsEnabled) Logging.Associate(this, amqpConnectionPool, $"{nameof(ResolveConnectionPool)}");
-                return amqpConnectionPool;
+            switch (deviceIdentity.AuthenticationModel)
+            {
+                case AuthenticationModel.SharedAccessKeyIndividualIdentity:
+                    if (string.IsNullOrWhiteSpace(poolName))
+                    {
+
+                    }
+
+                    break;
+                case AuthenticationModel.SharedAccessKeyHubPolicy:
+                    break;
+                case AuthenticationModel.X509Certificate:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"{nameof(deviceIdentity.AuthenticationModel)}");
             }
+
+            return $"{poolName}_{deviceIdentity.IotHubConnectionString.IotHubName}_";
         }
     }
 }

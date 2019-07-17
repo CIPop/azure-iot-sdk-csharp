@@ -30,16 +30,16 @@ namespace Microsoft.Azure.Devices.Client.Transport
                 Audience = CreateAudience(IotHubConnectionString);
                 if (iotHubConnectionString.SharedAccessKeyName == null)
                 {
-                    AuthenticationModel = AuthenticationModel.SasIndividual;
+                    AuthenticationModel = AuthenticationModel.SharedAccessKeyHubPolicy;
                 }
                 else
                 {
-                    AuthenticationModel = AuthenticationModel.SasGrouped;
+                    AuthenticationModel = AuthenticationModel.SharedAccessKeyIndividualIdentity;
                 }
             }
             else
             {
-                AuthenticationModel = AuthenticationModel.X509;
+                AuthenticationModel = AuthenticationModel.X509Certificate;
             }
         }
         private static string CreateAudience(IotHubConnectionString connectionString)

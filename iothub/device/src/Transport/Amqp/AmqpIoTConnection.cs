@@ -13,27 +13,16 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
-    internal class AmqpIoTConnection : IDisposable
+    internal abstract class AmqpIoTConnection
     {
         public event EventHandler OnConnectionDisconnected;
-        private readonly DeviceIdentity _deviceIdentity;
-        private readonly AmqpConnector _amqpIoTConnector;
-        private readonly SemaphoreSlim _lock;
-        private readonly IDictionary<DeviceIdentity, AmqpUnit> _amqpUnits;
-        private AmqpIoT.AmqpIoTConnection _amqpIoTConnection;
-        private AmqpIoTAuthenticationRefresher _amqpAuthenticationRefresher;
         private AmqpIoTCbsLink _amqpIoTCbsLink;
-        private bool _disposed;
 
-        public AmqpIoTConnection(DeviceIdentity deviceIdentity)
+        public AmqpIoTConnection()
         {
-            _deviceIdentity = deviceIdentity;
-            _amqpIoTConnector = new AmqpConnector(deviceIdentity.AmqpTransportSettings, deviceIdentity.IotHubConnectionString.HostName);
-            _lock = new SemaphoreSlim(1, 1);
-            _amqpUnits = new ConcurrentDictionary<DeviceIdentity, AmqpUnit>();
-            if (Logging.IsEnabled) Logging.Associate(this, _deviceIdentity, $"{nameof(_deviceIdentity)}");
         }
 
+#if false
         public AmqpUnit CreateAmqpUnit(
             DeviceIdentity deviceIdentity, 
             Func<MethodRequestInternal, Task> methodHandler, 
@@ -105,30 +94,6 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             if (Logging.IsEnabled) Logging.Exit(this, _amqpIoTConnection, $"{nameof(Shutdown)}");
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-
-            if (Logging.IsEnabled) Logging.Info(this, disposing, $"{nameof(Dispose)}");
-            if (disposing)
-            {
-                _amqpIoTConnection?.Abort();
-                _lock?.Dispose();
-                _amqpIoTConnector?.Dispose();
-                _amqpUnits?.Clear();
-                _amqpAuthenticationRefresher?.Dispose();
-                OnConnectionDisconnected?.Invoke(this, EventArgs.Empty);
-            }
-
-            _disposed = true;
-        }
-
         public async Task<IAmqpIoTAuthenticationRefresher> CreateRefresher(DeviceIdentity deviceIdentity, TimeSpan timeout)
         {
             if (Logging.IsEnabled) Logging.Enter(this, deviceIdentity, timeout, $"{nameof(CreateRefresher)}");
@@ -179,7 +144,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                     // Create AmqpConnection
                     amqpIoTConnection = await _amqpIoTConnector.OpenConnectionAsync(timeout).ConfigureAwait(false);
 
-                    if (_deviceIdentity.AuthenticationModel != AuthenticationModel.X509)
+                    if (_deviceIdentity.AuthenticationModel != AuthenticationModel.X509Certificate)
                     {
                         if (_amqpIoTCbsLink == null)
                         {
@@ -191,7 +156,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                             amqpIoTCbsLink = _amqpIoTCbsLink;
                         }
 
-                        if (_deviceIdentity.AuthenticationModel == AuthenticationModel.SasGrouped)
+                        if (_deviceIdentity.AuthenticationModel == AuthenticationModel.SharedAccessKeyIndividualIdentity)
                         {
                             if (Logging.IsEnabled) Logging.Info(this, "Creating connection width AmqpAuthenticationRefresher", $"{nameof(EnsureConnection)}");
                             amqpAuthenticationRefresher = new AmqpAuthenticationRefresher(_deviceIdentity, amqpIoTCbsLink);
@@ -228,5 +193,6 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             if (Logging.IsEnabled) Logging.Exit(this, timeout, $"{nameof(EnsureConnection)}");
             return amqpIoTConnection;
         }
+#endif
     }
 }

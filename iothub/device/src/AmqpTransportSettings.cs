@@ -14,13 +14,13 @@ namespace Microsoft.Azure.Devices.Client
     /// </summary>
     public sealed class AmqpTransportSettings : ITransportSettings
     {
-        static readonly TimeSpan DefaultOperationTimeout = TimeSpan.FromMinutes(1);
-        static readonly TimeSpan DefaultOpenTimeout = TimeSpan.FromMinutes(1);
-        const uint DefaultPrefetchCount = 50;
+        private static readonly TimeSpan s_defaultOperationTimeout = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan s_defaultOpenTimeout = TimeSpan.FromMinutes(1);
+        private const uint DefaultPrefetchCount = 50;
 
-        readonly TransportType transportType;
-        TimeSpan operationTimeout;
-        TimeSpan openTimeout;
+        private readonly TransportType _transportType;
+        private TimeSpan _operationTimeout;
+        private TimeSpan _openTimeout;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AmqpTransportSettings" class./>
@@ -32,9 +32,10 @@ namespace Microsoft.Azure.Devices.Client
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AmqpTransportSettings" class./>
+        /// Initializes a new instance of the <see cref="AmqpTransportSettings"/> class.
         /// </summary>
-        /// <param name="transportType">The AMQP transport type.</param>
+        /// <param name="transportType">Type of the transport.</param>
+        /// <param name="prefetchCount">The prefetch count (Total AMQP Link credit).</param>
         public AmqpTransportSettings(TransportType transportType, uint prefetchCount)
             :this(transportType, prefetchCount, new AmqpConnectionPoolSettings())
         {
@@ -42,8 +43,8 @@ namespace Microsoft.Azure.Devices.Client
 
         public AmqpTransportSettings(TransportType transportType, uint prefetchCount, AmqpConnectionPoolSettings amqpConnectionPoolSettings)
         {
-            this.operationTimeout = DefaultOperationTimeout;
-            this.openTimeout = DefaultOpenTimeout;
+            this._operationTimeout = s_defaultOperationTimeout;
+            this._openTimeout = s_defaultOpenTimeout;
 
             if (prefetchCount <= 0)
             {
@@ -54,10 +55,10 @@ namespace Microsoft.Azure.Devices.Client
             {
                 case TransportType.Amqp_WebSocket_Only:
                     this.Proxy = DefaultWebProxySettings.Instance;
-                    this.transportType = transportType;
+                    this._transportType = transportType;
                     break;
                 case TransportType.Amqp_Tcp_Only:
-                    this.transportType = transportType;
+                    this._transportType = transportType;
                     break;
                 case TransportType.Amqp:
                     throw new ArgumentOutOfRangeException(nameof(transportType), transportType, "Must specify Amqp_WebSocket_Only or Amqp_Tcp_Only");
@@ -69,34 +70,90 @@ namespace Microsoft.Azure.Devices.Client
             this.AmqpConnectionPoolSettings = amqpConnectionPoolSettings;
         }
 
+        /// <summary>
+        /// Returns the transport type of the TransportSettings object.
+        /// </summary>
+        /// <returns>
+        /// The TransportType
+        /// </returns>
         public TransportType GetTransportType()
         {
-            return this.transportType;
+            return this._transportType;
         }
 
-        public TimeSpan DefaultReceiveTimeout => this.operationTimeout;
+        /// <summary>
+        /// The default receive timeout.
+        /// </summary>
+        public TimeSpan DefaultReceiveTimeout => this._operationTimeout;
 
+        /// <summary>
+        /// Gets or sets the operation timeout.
+        /// </summary>
+        /// <value>
+        /// The operation timeout.
+        /// </value>
         public TimeSpan OperationTimeout {
-            get { return this.operationTimeout; }
+            get { return this._operationTimeout; }
             set { this.SetOperationTimeout(value); }
         }
 
+        /// <summary>
+        /// Gets or sets the open timeout.
+        /// </summary>
+        /// <value>
+        /// The open timeout.
+        /// </value>
         public TimeSpan OpenTimeout
         {
-            get { return this.openTimeout; }
+            get { return this._openTimeout; }
             set { this.SetOpenTimeout(value); }
         }
 
+        /// <summary>
+        /// Gets or sets the prefetch count. This is passed to the AMQP library as total link credit.
+        /// </summary>
+        /// <value>
+        /// The prefetch count.
+        /// </value>
         public uint PrefetchCount { get; set; }
 
+        /// <summary>
+        /// Gets or sets the client certificate.
+        /// </summary>
+        /// <value>
+        /// The client certificate.
+        /// </value>
         public X509Certificate2 ClientCertificate { get; set; }
 
+        /// <summary>
+        /// Gets or sets the proxy.
+        /// </summary>
+        /// <value>
+        /// The proxy.
+        /// </value>
         public IWebProxy Proxy { get; set; }
 
+        /// <summary>
+        /// Gets or sets the remote certificate validation callback.
+        /// </summary>
+        /// <value>
+        /// The remote certificate validation callback.
+        /// </value>
         public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; set; }
 
+        /// <summary>
+        /// Gets or sets the AMQP connection pool settings.
+        /// </summary>
+        /// <value>
+        /// The AMQP connection pool settings.
+        /// </value>
         public AmqpConnectionPoolSettings AmqpConnectionPoolSettings { get; set; }
 
+        /// <summary>
+        /// Determines whether two objects have the same value.
+        /// </summary>
+        /// <param name="other">The other object.</param>
+        /// <returns>true if the object are equal</returns>
         public bool Equals(AmqpTransportSettings other)
         {
             if (other == null)
@@ -113,11 +170,11 @@ namespace Microsoft.Azure.Devices.Client
             return (this.PrefetchCount == other.PrefetchCount && this.OpenTimeout == other.OpenTimeout && this.OperationTimeout == other.OperationTimeout && this.AmqpConnectionPoolSettings.Equals(other.AmqpConnectionPoolSettings));
         }
 
-        void SetOperationTimeout(TimeSpan timeout)
+        private void SetOperationTimeout(TimeSpan timeout)
         {
             if (timeout > TimeSpan.Zero)
             {
-                this.operationTimeout = timeout;
+                this._operationTimeout = timeout;
             }
             else
             {
@@ -125,11 +182,11 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
-        void SetOpenTimeout(TimeSpan timeout)
+        private void SetOpenTimeout(TimeSpan timeout)
         {
             if (timeout > TimeSpan.Zero)
             {
-                this.openTimeout = timeout;
+                this._openTimeout = timeout;
             }
             else
             {
