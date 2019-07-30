@@ -60,6 +60,7 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
     <Compile Include="net451\IotHubClientWebSocket.cs" />
+    <Compile Include="net451\SafeEventLogWriteHandle.cs" />
     <Compile Include="net451\Common\LegacyClientWebSocketTransport.cs" />
     <Compile Include="net451\Common\IOThreadTimer.cs" />
     <Compile Include="net451\Common\Interop\UnsafeNativeMethods.cs" />

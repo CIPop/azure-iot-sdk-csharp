@@ -114,46 +114,6 @@ namespace Microsoft.Azure.Devices.Client
             bool wait,
             out uint flags);
 
-        ////[DllImport(KERNEL32, SetLastError = true)]
-        ////[return: MarshalAs(UnmanagedType.Bool)]
-        ////[ResourceExposure(ResourceScope.None)]
-        ////[SecurityCritical]
-        ////static extern bool GetComputerNameEx
-        ////    (
-        ////    [In] ComputerNameFormat nameType,
-        ////    [In, Out, MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpBuffer,
-        ////    [In, Out] ref int size
-        ////    );
-
-        ////[SecurityCritical]
-        ////internal static string GetComputerName(ComputerNameFormat nameType)
-        ////{
-        ////    int length = 0;
-        ////    if (!GetComputerNameEx(nameType, null, ref length))
-        ////    {
-        ////        int error = Marshal.GetLastWin32Error();
-
-        ////        if (error != ERROR_MORE_DATA)
-        ////        {
-        ////            throw Fx.Exception.AsError(new System.ComponentModel.Win32Exception(error));
-        ////        }
-        ////    }
-
-        ////    if (length < 0)
-        ////    {
-        ////        Fx.AssertAndThrow("GetComputerName returned an invalid length: " + length);
-        ////    }
-
-        ////    StringBuilder stringBuilder = new StringBuilder(length);
-        ////    if (!GetComputerNameEx(nameType, stringBuilder, ref length))
-        ////    {
-        ////        int error = Marshal.GetLastWin32Error();
-        ////        throw Fx.Exception.AsError(new System.ComponentModel.Win32Exception(error));
-        ////    }
-
-        ////    return stringBuilder.ToString();
-        ////}
-
         [DllImport(KERNEL32)]
         [ResourceExposure(ResourceScope.None)]
         [SecurityCritical]

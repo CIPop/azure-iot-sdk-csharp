@@ -4,7 +4,6 @@
 
 namespace Microsoft.Azure.Devices.Common.Interop
 {
-#if !NETSTANDARD1_3 && !NETSTANDARD2_0
     using System;
     using System.Diagnostics;
     using System.Globalization;
@@ -45,5 +44,4 @@ namespace Microsoft.Azure.Devices.Common.Interop
             return DeregisterEventSource(this.handle);
         }
     }
-#endif
 }

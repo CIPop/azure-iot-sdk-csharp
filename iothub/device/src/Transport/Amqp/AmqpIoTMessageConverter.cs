@@ -516,5 +516,11 @@ namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT
             return new ArraySegment<byte>(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
 #endif
         }
+
+        private enum MappingType
+        {
+            ApplicationProperty,
+            MessageBody
+        }
     }
 }

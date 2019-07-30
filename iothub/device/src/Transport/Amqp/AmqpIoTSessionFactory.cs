@@ -46,24 +46,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             // TODO
             string poolName = deviceIdentity.AmqpTransportSettings.AmqpConnectionPoolSettings.PoolName;
 
-            switch (deviceIdentity.AuthenticationModel)
-            {
-                case AuthenticationModel.SharedAccessKeyIndividualIdentity:
-                    if (string.IsNullOrWhiteSpace(poolName))
-                    {
-
-                    }
-
-                    break;
-                case AuthenticationModel.SharedAccessKeyHubPolicy:
-                    break;
-                case AuthenticationModel.X509Certificate:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"{nameof(deviceIdentity.AuthenticationModel)}");
-            }
-
-            return $"{poolName}_{deviceIdentity.IotHubConnectionString.IotHubName}_";
+            throw new NotImplementedException();
+            
+            //return $"{poolName}_{deviceIdentity.IotHubConnectionString.IotHubName}_";
         }
     }
 }
