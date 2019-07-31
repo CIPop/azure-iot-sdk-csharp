@@ -6,6 +6,7 @@ namespace Microsoft.Azure.Devices.Client.Exceptions
     using System;
     using System.Runtime.Serialization;
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
 
     /// <summary>
     /// The exception that is thrown when an attempt to communicate with a device fails because the given device identifier cannot be found.

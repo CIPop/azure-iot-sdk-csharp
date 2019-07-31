@@ -10,6 +10,7 @@ namespace Microsoft.Azure.Devices.Client
     using System.Threading.Tasks;
     using Microsoft.Azure.Amqp;
     using Microsoft.Azure.Amqp.Transport;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.Azure.Devices.Shared;
 
     sealed class LegacyClientWebSocketTransport : TransportBase

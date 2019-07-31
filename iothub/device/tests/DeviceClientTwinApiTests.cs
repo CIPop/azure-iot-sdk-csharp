@@ -4,6 +4,7 @@ using NSubstitute;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Azure.Devices.Shared;
+using Microsoft.Azure.Devices.Common;
 
 namespace Microsoft.Azure.Devices.Client.Test
 {

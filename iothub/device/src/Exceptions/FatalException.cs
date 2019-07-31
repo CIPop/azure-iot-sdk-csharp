@@ -3,6 +3,7 @@
 
 namespace Microsoft.Azure.Devices.Client.Exceptions
 {
+    using Microsoft.Azure.Devices.Common;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.Serialization;

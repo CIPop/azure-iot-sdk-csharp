@@ -1,20 +1,17 @@
-//------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-//------------------------------------------------------------
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.Azure.Devices.Common.Interop
+namespace Microsoft.Azure.Devices.Common.Net451
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Eventing;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Security;
-    using System.Text;
     using System.Threading;
     using Microsoft.Win32.SafeHandles;
 
-    [SuppressUnmanagedCodeSecurity]    
+    [SuppressUnmanagedCodeSecurity]
     static class UnsafeNativeMethods
     {
         public const string KERNEL32 = "kernel32.dll";
@@ -60,7 +57,7 @@ namespace Microsoft.Azure.Devices.Common.Interop
             internal uint Size;
             [FieldOffset(12)]
             internal int Reserved;
-        }       
+        }
 
         //[SuppressMessage(FxCop.Category.Interoperability, FxCop.Rule.MarkBooleanPInvokeArgumentsWithMarshalAs, Justification = "Opened as CSDMain #183080.")]
         //[SuppressMessage(FxCop.Category.Security, FxCop.Rule.ReviewSuppressUnmanagedCodeSecurityUsage,

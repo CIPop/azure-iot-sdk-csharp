@@ -7,6 +7,8 @@ namespace Microsoft.Azure.Devices.Common
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices.Common;
+
 #if !NETSTANDARD1_3 && !NETSTANDARD2_0
     using System.Transactions;
 #endif

@@ -13,6 +13,9 @@ namespace Microsoft.Azure.Devices.Common
     using System.Runtime.Versioning;
     using System.Threading;
     using Microsoft.Azure.Devices.Common.Tracing;
+#if NET451
+    using  Microsoft.Azure.Devices.Common.Net451;
+#endif
 
     class ExceptionTrace
     {
@@ -208,7 +211,7 @@ namespace Microsoft.Azure.Devices.Common
                         // This is intended to "crash" the process so that a debugger can be attached.  If a managed
                         // debugger is already attached, it will already be able to hook these exceptions.  We don't
                         // want to simulate an unmanaged crash (DebugBreak) in that case.
-                        if (!Debugger.IsAttached && !Interop.UnsafeNativeMethods.IsDebuggerPresent())
+                        if (!Debugger.IsAttached && !UnsafeNativeMethods.IsDebuggerPresent())
                         {
                             Debugger.Launch();
                         }

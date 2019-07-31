@@ -11,6 +11,7 @@ namespace Microsoft.Azure.Amqp.Transport
     using System.Threading.Tasks;
 
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Common;
 
     sealed class ClientWebSocketTransport : TransportBase
     {

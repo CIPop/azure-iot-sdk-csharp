@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Devices.Client
         private TimeSpan _openTimeout;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AmqpTransportSettings" class./>
+        /// Initializes a new instance of the <see cref="AmqpTransportSettings"/> class./>
         /// </summary>
         /// <param name="transportType">The AMQP transport type.</param>
         public AmqpTransportSettings(TransportType transportType)

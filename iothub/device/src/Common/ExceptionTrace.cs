@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.Azure.Devices.Client
+namespace Microsoft.Azure.Devices.Common
 {
     using System;
     using System.Diagnostics;
@@ -12,6 +12,9 @@ namespace Microsoft.Azure.Devices.Client
     using System.Runtime.Versioning;
     using System.Threading;
     using Microsoft.Azure.Devices.Client.Extensions;
+#if NET451
+    using Microsoft.Azure.Devices.Common.Net451;
+#endif
 
     class ExceptionTrace
     {

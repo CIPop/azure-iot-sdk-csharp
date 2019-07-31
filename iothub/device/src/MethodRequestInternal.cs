@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Devices.Client
     using Microsoft.Azure.Devices.Client.Common.Api;
     using System.Collections.Generic;
 #endif
-
+    using Microsoft.Azure.Devices.Common;
     using DateTimeT = System.DateTime;
 
     /// <summary>

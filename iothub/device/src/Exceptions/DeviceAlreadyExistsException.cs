@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.Serialization;
 using Microsoft.Azure.Devices.Client.Extensions;
+using Microsoft.Azure.Devices.Common;
 
 namespace Microsoft.Azure.Devices.Client.Exceptions
 {

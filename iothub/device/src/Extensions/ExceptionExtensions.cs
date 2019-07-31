@@ -9,6 +9,7 @@ namespace Microsoft.Azure.Devices.Client.Extensions
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using Microsoft.Azure.Devices.Common;
 
     static class ExceptionExtensions
     {

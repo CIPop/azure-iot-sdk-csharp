@@ -6,6 +6,7 @@ namespace Microsoft.Azure.Devices.Client.Exceptions
     using System;
     using System.Runtime.Serialization;
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
 
     // TODO: #707 - This exception is not thrown by any protocol.
 

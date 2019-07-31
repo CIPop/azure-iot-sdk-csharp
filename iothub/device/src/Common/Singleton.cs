@@ -6,6 +6,7 @@ namespace Microsoft.Azure.Devices.Client
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.Azure.Devices.Client.Extensions;
 
     abstract class Singleton<TValue> : IDisposable where TValue : class

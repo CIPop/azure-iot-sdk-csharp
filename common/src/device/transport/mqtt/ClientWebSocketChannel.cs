@@ -12,6 +12,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Mqtt
     using DotNetty.Buffers;
     using DotNetty.Transport.Channels;
     using System.Diagnostics;
+    using Microsoft.Azure.Devices.Common;
 
 #pragma warning disable CA1001 // Types that own disposable fields should be disposable - WS is owned by the caller.
     internal class ClientWebSocketChannel : AbstractChannel
