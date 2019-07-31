@@ -18,7 +18,6 @@ namespace Microsoft.Azure.Devices.Common
 
     class ExceptionTrace
     {
-        const ushort FailFastEventLogCategory = 6;
         readonly string eventSourceName;
 
         public ExceptionTrace(string eventSourceName)
