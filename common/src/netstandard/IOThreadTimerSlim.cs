@@ -6,10 +6,10 @@ namespace Microsoft.Azure.Devices.Common.NetStandard
     using System;
     using System.Threading;
 
-    class IOThreadTimerSlim
+    internal class IOThreadTimerSlim : IDisposable
     {
         Timer timer;
-        Action<object> callback;
+        readonly Action<object> callback;
         object callbackState;
 
         private void CreateTimer()
@@ -38,6 +38,24 @@ namespace Microsoft.Azure.Devices.Common.NetStandard
             timer.Dispose();
             timer = null;
             return true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (timer != null)
+                {
+                    timer.Dispose();
+                    timer = null;
+                }
+            }
         }
     }
 }

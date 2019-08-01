@@ -85,7 +85,6 @@
   <!-- NetStandard 1.3 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
-    <Compile Include="$(Common)\netstandard\IOThreadTimerSlim.cs" />
     <Compile Include="netstandard13\System.Web\HttpUtility.cs" />
     <Compile Include="netstandard13\System.Web\Util\HttpEncoder.cs" />
     <Compile Include="netstandard13\System.Web\Util\HttpEncoderUtility.cs" />
@@ -118,7 +117,6 @@
   <!-- NetStandard 2.0 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
-    <Compile Include="$(Common)\netstandard\IOThreadTimerSlim.cs" />
     <Compile Include="netstandard13\HsmAuthentication\Transport\HttpUdsMessageHandler.cs" />
     <Compile Include="netstandard13\HsmAuthentication\Transport\HttpBufferedStream.cs" />
     <Compile Include="netstandard13\HsmAuthentication\Transport\HttpRequestResponseSerializer.cs" />
@@ -129,9 +127,17 @@
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
   </ItemGroup>
 
+  <!-- Dev-time tools -->
   <ItemGroup>
-    <!-- FXCop -->
-    <PackageReference Condition=" '$(Configuration)' == 'Debug' " Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.1" />
-  </ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
 
+  </ItemGroup>
+ 
 </Project>

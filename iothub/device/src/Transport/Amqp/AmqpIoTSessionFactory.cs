@@ -12,14 +12,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
     internal class AmqpIoTSessionFactory
     {
-        private const string PoolNameIndividualIdentityKey = "SAS";
-        private const string PoolNameHubPolicyKey = "SASPolicy";
-        private const string PoolNameX509Certificate = "X509";
-
         private static readonly AmqpIoTSessionFactory s_instance = new AmqpIoTSessionFactory();
 
-        private Dictionary<string, AmqpIoTConnectionPool> _amqpConnectionPools = new Dictionary<string, AmqpIoTConnectionPool>();
-        private readonly object _lock = new object();
+        //private readonly Dictionary<string, AmqpIoTConnectionPool> _amqpConnectionPools = new Dictionary<string, AmqpIoTConnectionPool>();
 
         internal AmqpIoTSessionFactory()
         {
@@ -30,25 +25,24 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             return s_instance;
         }
 
+
+#if false
         // TODO: this should return AmqpIoTSession.
         // TODO: UT
         public Task<AmqpIoTSession> GetAmqpIoTSessionAsync(
             DeviceIdentity deviceIdentity)
         {
-            string connectionPoolName = GetConnectionPoolName(deviceIdentity);
 
-            // 
             throw new NotImplementedException();
         }
 
         private string GetConnectionPoolName(DeviceIdentity deviceIdentity)
         {
             // TODO
-            string poolName = deviceIdentity.AmqpTransportSettings.AmqpConnectionPoolSettings.PoolName;
-
             throw new NotImplementedException();
             
             //return $"{poolName}_{deviceIdentity.IotHubConnectionString.IotHubName}_";
         }
+#endif
     }
 }

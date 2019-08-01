@@ -30,17 +30,17 @@ namespace Microsoft.Azure.Devices.Common.Net451
     // - Timer instances are relatively cheap.  They share "heavy" resources like the waiter thread and 
     //   waitable timer handle.
     // - Setting or canceling a timer does not typically involve any allocations.
-    class IOThreadTimer
+    internal class IOThreadTimer
     {
-        const int maxSkewInMillisecondsDefault = 100;
-        static long systemTimeResolutionTicks = -1;
-        Action<object> callback;
-        object callbackState;
-        long dueTime;
+        private const int maxSkewInMillisecondsDefault = 100;
+        private static long systemTimeResolutionTicks = -1;
+        private readonly Action<object> callback;
+        private readonly object callbackState;
+        private long dueTime;
 
-        int index;
-        long maxSkew;
-        TimerGroup timerGroup;
+        private int index;
+        private readonly long maxSkew;
+        private readonly TimerGroup timerGroup;
 
         public IOThreadTimer(Action<object> callback, object callbackState, bool isTypicallyCanceledShortlyAfterBeingSet)
             : this(callback, callbackState, isTypicallyCanceledShortlyAfterBeingSet, maxSkewInMillisecondsDefault)
@@ -70,11 +70,7 @@ namespace Microsoft.Azure.Devices.Common.Net451
         [Fx.Tag.SecurityNote(Critical = "Calls critical method GetSystemTimeAdjustment", Safe = "method is a SafeNativeMethod")]
         static long GetSystemTimeResolution()
         {
-            int dummyAdjustment;
-            uint increment;
-            uint dummyAdjustmentDisabled;
-
-            if (UnsafeNativeMethods.GetSystemTimeAdjustment(out dummyAdjustment, out increment, out dummyAdjustmentDisabled) != 0)
+            if (UnsafeNativeMethods.GetSystemTimeAdjustment(out _, out uint increment, out _) != 0)
             {
                 return (long)increment;
             }
@@ -100,7 +96,7 @@ namespace Microsoft.Azure.Devices.Common.Net451
         {
             if (timeFromNow == TimeSpan.MaxValue)
             {
-                throw Fx.Exception.Argument("timeFromNow", CommonResources.IOThreadTimerCannotAcceptMaxTimeSpan);
+                throw Fx.Exception.Argument(nameof(timeFromNow), CommonResources.IOThreadTimerCannotAcceptMaxTimeSpan);
             }
 
             SetAt(Ticks.Add(Ticks.Now, Ticks.FromTimeSpan(timeFromNow)));
@@ -125,20 +121,20 @@ namespace Microsoft.Azure.Devices.Common.Net451
         }
 
         [Fx.Tag.SynchronizationObject(Blocking = false, Scope = Fx.Tag.Strings.AppDomain)]
-        class TimerManager : IDisposable
+        internal class TimerManager : IDisposable
         {
-            const long maxTimeToWaitForMoreTimers = 1000 * TimeSpan.TicksPerMillisecond;
+            private const long maxTimeToWaitForMoreTimers = 1000 * TimeSpan.TicksPerMillisecond;
 
             [Fx.Tag.Queue(typeof(IOThreadTimer), Scope = Fx.Tag.Strings.AppDomain, StaleElementsRemovedImmediately = true)]
-            static TimerManager value = new TimerManager();
+            private readonly static TimerManager value = new TimerManager();
 
-            Action<object> onWaitCallback;
-            TimerGroup stableTimerGroup;
-            TimerGroup volatileTimerGroup;
+            private readonly Action<object> onWaitCallback;
+            private TimerGroup stableTimerGroup;
+            private TimerGroup volatileTimerGroup;
             [Fx.Tag.SynchronizationObject(Blocking = false)]
-            WaitableTimer[] waitableTimers;
+            private readonly WaitableTimer[] waitableTimers;
 
-            bool waitScheduled;
+            private bool waitScheduled;
 
             public TimerManager()
             {
@@ -364,16 +360,29 @@ namespace Microsoft.Azure.Devices.Common.Net451
 
             public void Dispose()
             {
-                this.stableTimerGroup.Dispose();
-                this.volatileTimerGroup.Dispose();
+                Dispose(true);
                 GC.SuppressFinalize(this);
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    if (stableTimerGroup != null)
+                    {
+                        stableTimerGroup.Dispose();
+                        stableTimerGroup = null;
+                        volatileTimerGroup.Dispose();
+                        volatileTimerGroup = null;
+                    }
+                }
             }
         }
 
-        class TimerGroup : IDisposable
+        internal class TimerGroup : IDisposable
         {
-            TimerQueue timerQueue;
-            WaitableTimer waitableTimer;
+            private readonly TimerQueue timerQueue;
+            private readonly WaitableTimer waitableTimer;
 
             public TimerGroup()
             {
@@ -404,7 +413,7 @@ namespace Microsoft.Azure.Devices.Common.Net451
             }
         }
 
-        class TimerQueue
+        internal class TimerQueue
         {
             int count;
             IOThreadTimer[] timers;
@@ -625,7 +634,7 @@ namespace Microsoft.Azure.Devices.Common.Net451
         }
 
         [Fx.Tag.SynchronizationPrimitive(Fx.Tag.BlocksUsing.NonBlocking)]
-        class WaitableTimer : WaitHandle
+        internal class WaitableTimer : WaitHandle
         {
             long dueTime;
 
