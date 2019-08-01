@@ -7,6 +7,7 @@ namespace Microsoft.Azure.Devices.Client.Test
     using System.Threading.Tasks;
 
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     public static class TestAssert

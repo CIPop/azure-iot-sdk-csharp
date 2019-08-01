@@ -42,8 +42,6 @@ namespace Microsoft.Azure.Devices.Client
             { typeof(DateTimeOffset), PropertyValueType.DateTimeOffset },
             { typeof(TimeSpan), PropertyValueType.TimeSpan },
             { typeof(BufferedInputStream), PropertyValueType.Stream },
-            ////{ typeof(XName), PropertyValueType.XName},
-            ////{ typeof(XmlQualifiedName), PropertyValueType.XmlQualifiedName},
         };
 
         public static PropertyValueType GetTypeId(object value)

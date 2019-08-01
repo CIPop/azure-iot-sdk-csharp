@@ -5,6 +5,7 @@ namespace Microsoft.Azure.Devices.Client
 {
     using System;
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
     
     /// <summary>
     /// Authentication method that uses the symmetric key associated with the module in the device registry. 

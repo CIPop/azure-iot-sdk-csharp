@@ -4,6 +4,7 @@
 namespace Microsoft.Azure.Devices.Client
 {
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
     using System;
 
     /// <summary>

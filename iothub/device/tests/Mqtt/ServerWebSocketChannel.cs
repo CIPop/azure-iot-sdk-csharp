@@ -11,6 +11,7 @@ namespace Microsoft.Azure.Devices.Client.Test
     using System.Threading.Tasks;
     using DotNetty.Buffers;
     using DotNetty.Transport.Channels;
+    using Microsoft.Azure.Devices.Common;
 
     public class ServerWebSocketChannel : AbstractChannel
     {

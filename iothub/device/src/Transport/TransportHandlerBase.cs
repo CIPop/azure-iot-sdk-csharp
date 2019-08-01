@@ -8,7 +8,8 @@ namespace Microsoft.Azure.Devices.Client.Transport
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-
+    using Microsoft.Azure.Devices.Common;
+    
     /// <summary>
     /// Contains the implementation of methods that a device can use to send messages to and receive from the service.
     /// </summary>

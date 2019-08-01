@@ -10,7 +10,7 @@
     <OutputPath>.\bin\$(Configuration)</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <!-- Don't auto-compile platform specific files: -->
-    <DefaultItemExcludes>netstandard13/**;netstandard20/**;net451/**;$(DefaultItemExcludes)</DefaultItemExcludes>
+    <DefaultItemExcludes>WebSocket/**;netstandard13/**;netstandard20/**;net451/**;$(DefaultItemExcludes)</DefaultItemExcludes>
     <RootDir>$(MSBuildProjectDirectory)\..\..\..</RootDir>
   </PropertyGroup>
 
@@ -116,13 +116,14 @@
   <!-- Net451 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
-    <Compile Include="net451\IotHubClientWebSocket.cs" />
-    <Compile Include="net451\Common\ActionItem.cs" />
-    <Compile Include="net451\Common\IOThreadTimer.cs" />
-    <Compile Include="net451\Common\SynchronizedPool.cs" />
-    <Compile Include="net451\Common\Amqp\ClientWebSocketTransport.cs" />
-    <Compile Include="net451\Common\Amqp\LegacyClientWebSocketTransport.cs" />
-    <Compile Include="net451\Common\Interop\UnsafeNativeMethods.cs" />
+    <Compile Include="$(Common)\net451\SafeEventLogWriteHandle.cs" />
+    <Compile Include="$(Common)\net451\IOThreadTimer.cs" />
+    <Compile Include="$(Common)\net451\UnsafeNativeMethods.cs" />
+    <Compile Include="net451\ActionItem.cs" />
+    <Compile Include="net451\SynchronizedPool.cs" />
+    <Compile Include="WebSocket\IotHubClientWebSocket.cs" />
+    <Compile Include="WebSocket\ClientWebSocketTransport.cs" />
+    <Compile Include="WebSocket\LegacyClientWebSocketTransport.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Reference Include="System.Configuration" />
@@ -136,7 +137,7 @@
   <!-- NetStandard 1.3 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
-    <Compile Include="netstandard13\Common\IOThreadTimerSlim.cs" />
+    <Compile Include="$(Common)\netstandard\IOThreadTimerSlim.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
@@ -147,10 +148,10 @@
   <!-- NetStandard 2.0 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
-    <Compile Include="netstandard13\Common\IOThreadTimerSlim.cs" />
-    <Compile Include="net451\IotHubClientWebSocket.cs" />
-    <Compile Include="net451\Common\Amqp\ClientWebSocketTransport.cs" />
-    <Compile Include="net451\Common\Amqp\LegacyClientWebSocketTransport.cs" />
+    <Compile Include="$(Common)\netstandard\IOThreadTimerSlim.cs" />
+    <Compile Include="WebSocket\IotHubClientWebSocket.cs" />
+    <Compile Include="WebSocket\ClientWebSocketTransport.cs" />
+    <Compile Include="WebSocket\LegacyClientWebSocketTransport.cs" />
   </ItemGroup>
 
   <ItemGroup>

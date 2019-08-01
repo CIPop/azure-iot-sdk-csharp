@@ -6,6 +6,7 @@ namespace Microsoft.Azure.Devices.Client
     using System;
     using System.Net;
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
 #if !NETMF
     using System.Collections.Generic;
     using System.IO;

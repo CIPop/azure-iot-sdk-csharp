@@ -6,6 +6,7 @@ namespace Microsoft.Azure.Devices
     using System;
 #if NET451
     using System.Configuration;
+    using Microsoft.Azure.Devices.Common.Net451;
 #endif
     using System.Net;
     using System.Net.Security;
@@ -13,6 +14,10 @@ namespace Microsoft.Azure.Devices
     using System.Net.WebSockets;
     using System.Security.Authentication;
     using System.Security.Cryptography.X509Certificates;
+#endif
+
+#if !NET451
+    using Microsoft.Azure.Devices.Common.NetStandard;
 #endif
 
     using System.Threading;

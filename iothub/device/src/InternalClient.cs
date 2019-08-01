@@ -14,6 +14,7 @@ namespace Microsoft.Azure.Devices.Client
 #endif
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.Azure.Devices.Client.Extensions;
     using Microsoft.Azure.Devices.Client.Transport;
     using Microsoft.Azure.Devices.Shared;
@@ -1139,6 +1140,8 @@ namespace Microsoft.Azure.Devices.Client
 
         #region Module Specific API
         /// <summary>
+        /// Sends an event to a specified output target.
+        /// </summary>
         /// <param name="outputName">The output target for sending the given message</param>
         /// <param name="message">The message to send</param>
         /// <returns>The message containing the event</returns>
@@ -1160,8 +1163,11 @@ namespace Microsoft.Azure.Devices.Client
         }
 
         /// <summary>
+        /// Sends an event to a specified output target.
+        /// </summary>
         /// <param name="outputName">The output target for sending the given message</param>
         /// <param name="message">The message to send</param>
+        /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>The message containing the event</returns>
         public Task SendEventAsync(string outputName, Message message, CancellationToken cancellationToken)
         {

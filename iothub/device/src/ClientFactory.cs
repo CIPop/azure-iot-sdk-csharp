@@ -5,6 +5,7 @@ namespace Microsoft.Azure.Devices.Client
 {
     using System;
     using System.Text.RegularExpressions;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.Azure.Devices.Client.Extensions;
     using Microsoft.Azure.Devices.Client.Transport;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;

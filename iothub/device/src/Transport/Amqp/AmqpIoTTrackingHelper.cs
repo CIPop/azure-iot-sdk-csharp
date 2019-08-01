@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Microsoft.Azure.Amqp;
 using Microsoft.Azure.Amqp.Framing;
+using Microsoft.Azure.Devices.Common;
 using Microsoft.Azure.Devices.Client.Extensions;
 
 namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT

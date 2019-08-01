@@ -13,6 +13,7 @@ namespace Microsoft.Azure.Devices.Client
 #endif
     using DateTimeT = System.DateTime;
     using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
+    using Microsoft.Azure.Devices.Common;
 
     /// <summary>
     /// The data structure represent the method response that is used for interacting with IotHub.

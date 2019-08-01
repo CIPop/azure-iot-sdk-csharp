@@ -10,6 +10,7 @@ namespace Microsoft.Azure.Devices.Client
     using Newtonsoft.Json;
 #endif
     using Extensions;
+    using Microsoft.Azure.Devices.Common;
 
     static class Utils
     {

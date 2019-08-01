@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.Azure.Amqp;
 using Microsoft.Azure.Amqp.Encoding;
 using Microsoft.Azure.Amqp.Framing;
+using Microsoft.Azure.Devices.Common;
 using Microsoft.Azure.Devices.Client.Common.Api;
 
 namespace Microsoft.Azure.Devices.Client.Transport.AmqpIoT

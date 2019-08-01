@@ -17,6 +17,7 @@ namespace Microsoft.Azure.Devices.Client
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.Azure.Devices.Client.Common;
     using Microsoft.Azure.Devices.Client.Extensions;
     using Microsoft.Azure.Devices.Shared;

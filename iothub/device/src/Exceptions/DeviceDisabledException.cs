@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Runtime.Serialization;
+using Microsoft.Azure.Devices.Common;
+using Microsoft.Azure.Devices.Client.Extensions;
+
 namespace Microsoft.Azure.Devices.Client.Exceptions
 {
-    using System;
-    using System.Runtime.Serialization;
-    using Microsoft.Azure.Devices.Client.Extensions;
-
     // TODO: #707 - This exception is not thrown by any protocol.
 
     /// <summary>

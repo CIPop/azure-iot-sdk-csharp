@@ -54,16 +54,23 @@
     <Compile Include="$(Common)\Logging.Common.cs">
       <Link>Common\Logging.Common.cs</Link>
     </Compile>
+    <Compile Include="$(Common)\device\transport\mqtt\ClientWebSocketChannel.cs">
+      <Link>Common\device\transport\mqtt\ClientWebSocketChannel.cs</Link>
+    </Compile>
+    <Compile Include="$(Common)\device\transport\mqtt\ClientWebSocketChannelConfig.cs">
+      <Link>Common\device\transport\mqtt\ClientWebSocketChannelConfig.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <!-- Net451 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
+    <Compile Include="$(Common)\net451\SafeEventLogWriteHandle.cs" />
+    <Compile Include="$(Common)\net451\IOThreadTimer.cs" />
+    <Compile Include="$(Common)\net451\UnsafeNativeMethods.cs" />
     <Compile Include="net451\IotHubClientWebSocket.cs" />
-    <Compile Include="net451\SafeEventLogWriteHandle.cs" />
-    <Compile Include="net451\Common\LegacyClientWebSocketTransport.cs" />
-    <Compile Include="net451\Common\IOThreadTimer.cs" />
-    <Compile Include="net451\Common\Interop\UnsafeNativeMethods.cs" />
+    <Compile Include="net451\LegacyClientWebSocketTransport.cs" />
+    <Compile Include="net451\SignalGate.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Reference Include="System.Configuration" />
@@ -78,7 +85,7 @@
   <!-- NetStandard 1.3 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
-    <Compile Include="netstandard13\Common\IOThreadTimerSlim.cs" />
+    <Compile Include="$(Common)\netstandard\IOThreadTimerSlim.cs" />
     <Compile Include="netstandard13\System.Web\HttpUtility.cs" />
     <Compile Include="netstandard13\System.Web\Util\HttpEncoder.cs" />
     <Compile Include="netstandard13\System.Web\Util\HttpEncoderUtility.cs" />
@@ -111,7 +118,7 @@
   <!-- NetStandard 2.0 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <Compile Include="$(Common)\DefaultWebProxySettings.cs" />
-    <Compile Include="netstandard13\Common\IOThreadTimerSlim.cs" />
+    <Compile Include="$(Common)\netstandard\IOThreadTimerSlim.cs" />
     <Compile Include="netstandard13\HsmAuthentication\Transport\HttpUdsMessageHandler.cs" />
     <Compile Include="netstandard13\HsmAuthentication\Transport\HttpBufferedStream.cs" />
     <Compile Include="netstandard13\HsmAuthentication\Transport\HttpRequestResponseSerializer.cs" />

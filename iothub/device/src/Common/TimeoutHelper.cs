@@ -6,6 +6,7 @@ namespace Microsoft.Azure.Devices.Client
     using System;
     using System.Diagnostics;
     using System.Threading;
+    using Microsoft.Azure.Devices.Common;
 
     [DebuggerStepThrough]
     struct TimeoutHelper

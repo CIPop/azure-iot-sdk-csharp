@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.Azure.Devices.Client.Extensions;
+using Microsoft.Azure.Devices.Common;
 using Microsoft.Azure.Devices.Shared;
 using System;
 using System.Diagnostics;

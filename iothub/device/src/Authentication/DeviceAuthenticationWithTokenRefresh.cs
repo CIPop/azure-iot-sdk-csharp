@@ -5,6 +5,7 @@ namespace Microsoft.Azure.Devices.Client
 {
     using System;
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Diagnostics;

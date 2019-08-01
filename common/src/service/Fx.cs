@@ -11,13 +11,12 @@ namespace Microsoft.Azure.Devices.Common
     using System.Globalization;
     using System.Reflection;
     using System.Runtime.CompilerServices;
-#if NET451
-    using System.Runtime.ConstrainedExecution;
-#endif
     using System.Runtime.InteropServices;
     using System.Security;
     using System.Threading;
+
 #if NET451
+    using System.Runtime.ConstrainedExecution;
     using System.Transactions;
     using Microsoft.Win32;
 #endif

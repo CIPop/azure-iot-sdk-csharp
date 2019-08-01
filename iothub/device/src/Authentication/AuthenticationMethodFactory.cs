@@ -4,7 +4,7 @@
 namespace Microsoft.Azure.Devices.Client
 {
     using System;
-    using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
 
     /// <summary>
     /// Creates an instance of an implementation of <see cref="IAuthenticationMethod"/> based on known authentication parameters.

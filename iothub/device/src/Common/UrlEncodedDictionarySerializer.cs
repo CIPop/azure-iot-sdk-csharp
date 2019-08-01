@@ -8,6 +8,7 @@ namespace Microsoft.Azure.Devices.Client.Common
     using System.Linq;
     using System.Text;
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
 
     public class UrlEncodedDictionarySerializer
     {

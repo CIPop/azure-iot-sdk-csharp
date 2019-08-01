@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-#if NET451
-namespace Microsoft.Azure.Devices.Client
+
+namespace Microsoft.Azure.Devices.Common.Net451
 {
     using System;
     using System.ComponentModel;
     using System.Security;
     using System.Threading;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.Win32.SafeHandles;
 
     // IOThreadTimer has several characterstics that are important for performance:
@@ -674,4 +675,3 @@ namespace Microsoft.Azure.Devices.Client
         }
     }
 }
-#endif

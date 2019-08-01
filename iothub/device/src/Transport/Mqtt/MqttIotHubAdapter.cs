@@ -14,6 +14,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Mqtt
     using Microsoft.Azure.Devices.Client.Common;
     using Microsoft.Azure.Devices.Client.Exceptions;
     using Microsoft.Azure.Devices.Client.Extensions;
+    using Microsoft.Azure.Devices.Common;
     using Microsoft.Azure.Devices.Shared;
     using System;
     using System.Collections.Concurrent;

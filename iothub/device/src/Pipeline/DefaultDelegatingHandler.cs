@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Devices.Client.Common;
+using Microsoft.Azure.Devices.Common;
 using Microsoft.Azure.Devices.Shared;
 
 namespace Microsoft.Azure.Devices.Client.Transport

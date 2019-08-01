@@ -13,9 +13,6 @@ namespace Microsoft.Azure.Devices.Client
     using Microsoft.Azure.Devices.Client.Transport;
     using System;
     using System.Collections.Generic;
-#if NETSTANDARD1_3
-using System.Net.Http;
-#endif
     using System.Threading.Tasks;
     using Microsoft.Azure.Devices.Client.Extensions;
     using Microsoft.Azure.Devices.Shared;

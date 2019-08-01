@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Azure.Devices.Common;
 using Microsoft.Azure.Devices.Client.Extensions;
 using Microsoft.Azure.Devices.Client.Transport.Mqtt;
 
