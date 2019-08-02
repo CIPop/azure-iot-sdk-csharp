@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Devices.Client
 #if !NETMF
         private const RegexOptions regexOptions = RegexOptions.Compiled | RegexOptions.IgnoreCase;
         private static readonly TimeSpan regexTimeoutMilliseconds = TimeSpan.FromMilliseconds(500);
-        private const string X509CertPropertyName =  "X509Cert";
+        private const string X509CertPropertyName = "X509Cert";
         private static readonly Regex HostNameRegex = new Regex(@"[a-zA-Z0-9_\-\.]+$", regexOptions, regexTimeoutMilliseconds);
         private static readonly Regex IdNameRegex = new Regex(@"^[A-Za-z0-9\-:.+%_#*?!(),=@;$']{1,128}$", regexOptions, regexTimeoutMilliseconds);
         private static readonly Regex SharedAccessKeyNameRegex = new Regex(@"^[a-zA-Z0-9_\-@\.]+$", regexOptions, regexTimeoutMilliseconds);
@@ -103,7 +103,7 @@ namespace Microsoft.Azure.Devices.Client
         }
 
         internal static IotHubConnectionStringBuilder CreateWithIAuthenticationOverride(
-            string iotHubConnectionString, 
+            string iotHubConnectionString,
             IAuthenticationMethod authenticationMethod)
         {
             var iotHubConnectionStringBuilder = new IotHubConnectionStringBuilder()
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.Devices.Client
             if (authenticationMethod == null)
             {
                 iotHubConnectionStringBuilder.Parse(iotHubConnectionString);
-                iotHubConnectionStringBuilder.AuthenticationMethod = 
+                iotHubConnectionStringBuilder.AuthenticationMethod =
                     AuthenticationMethodFactory.GetAuthenticationMethod(iotHubConnectionStringBuilder);
             }
             else
@@ -139,7 +139,8 @@ namespace Microsoft.Azure.Devices.Client
         /// <summary>
         /// Gets or sets the authentication method to be used with the IoT Hub service.
         /// </summary>
-        public IAuthenticationMethod AuthenticationMethod {
+        public IAuthenticationMethod AuthenticationMethod
+        {
             get { return this.authenticationMethod; }
             set { this.SetAuthenticationMethod(value); }
         }
@@ -174,9 +175,12 @@ namespace Microsoft.Azure.Devices.Client
         /// </summary>
         public string SharedAccessSignature { get; internal set; }
 
+        /// <summary>Gets a value indicating whether [using X509 cert].</summary>
+        /// <value>
+        ///   <c>true</c> if [using X509 cert]; otherwise, <c>false</c>.</value>
         public bool UsingX509Cert { get; internal set; }
 
-        internal string IotHubName 
+        internal string IotHubName
         {
             get { return this.iotHubName; }
         }
@@ -417,8 +421,7 @@ namespace Microsoft.Azure.Devices.Client
 
         static string GetConnectionStringValue(IDictionary<string, string> map, string propertyName)
         {
-            string value;
-            if (!map.TryGetValue(propertyName, out value))
+            if (!map.TryGetValue(propertyName, out string value))
             {
                 throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "The connection string is missing the property: {0}", propertyName), "iotHubConnectionString");
             }
@@ -428,14 +431,13 @@ namespace Microsoft.Azure.Devices.Client
 
         static string GetConnectionStringOptionalValue(IDictionary<string, string> map, string propertyName)
         {
-            string value;
-            map.TryGetValue(propertyName, out value);
+            map.TryGetValue(propertyName, out string value);
             return value;
         }
 
         static TValue GetConnectionStringOptionalValueOrDefault<TValue>(IDictionary<string, string> map, string propertyName, TryParse<string, TValue> tryParse, bool ignoreCase)
         {
-            TValue value = default(TValue);
+            TValue value = default;
             string stringValue;
             if (map.TryGetValue(propertyName, out stringValue) && stringValue != null)
             {

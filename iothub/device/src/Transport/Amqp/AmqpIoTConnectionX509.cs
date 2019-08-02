@@ -16,7 +16,5 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
     internal class AmqpIoTConnectionX509 : AmqpIoTConnection
     {
-        private X509Certificate2 _certificate;
-
     }
 }

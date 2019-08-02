@@ -12,16 +12,13 @@ using Microsoft.Azure.Devices.Client.Transport.AmqpIoT;
 
 namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
+#pragma warning disable IDE0060 // Remove unused parameter - TODO - REMOVE this pragma when implementation is ready.
+
     internal class AmqpTransportHandler : TransportHandler
     {
         #region Members-Constructor
         private const int ResponseTimeoutInSeconds = 300;
-        private readonly TimeSpan _operationTimeout;
-        private readonly TimeSpan _openTimeout;
-
-        private readonly AmqpIoTSession _session;
-        private readonly Action<TwinCollection> _desiredPropertyListener;
-        private ConcurrentDictionary<string, TaskCompletionSource<Twin>> _twinResponseCompletions = new ConcurrentDictionary<string, TaskCompletionSource<Twin>>();
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<Twin>> _twinResponseCompletions = new ConcurrentDictionary<string, TaskCompletionSource<Twin>>();
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline: We use the static ctor to have init-once semantics.
         static AmqpTransportHandler()
@@ -47,13 +44,6 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             Func<string, Message, Task> eventListener = null)
             : base(context, transportSettings)
         {
-            _operationTimeout = transportSettings.OperationTimeout;
-            _openTimeout = transportSettings.OpenTimeout;
-
-            _desiredPropertyListener = desiredPropertyListener;
-            DeviceIdentity deviceIdentity = new DeviceIdentity(connectionString, transportSettings, context.Get<ProductInfo>());
-
-
         }
         #endregion
 
@@ -66,6 +56,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                // TODO
+                await Task.Yield();
+                throw new NotImplementedException();
 
             }
             catch (Exception exception) when (!exception.IsFatal() && !(exception is OperationCanceledException))
@@ -95,6 +88,12 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 OnTransportClosedGracefully();
+
+                // TODO
+                await Task.Yield();
+                throw new NotImplementedException();
+
+
             }
             finally
             {
@@ -111,7 +110,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
+                // TODO
+                await Task.Yield();
+                throw new NotImplementedException();
 
             }
             finally
@@ -127,6 +128,10 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                // TODO
+                await Task.Yield();
+                throw new NotImplementedException();
+
 
             }
             finally
@@ -138,17 +143,19 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         public override async Task<Message> ReceiveAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
             if (Logging.IsEnabled) Logging.Enter(this, timeout, cancellationToken, $"{nameof(ReceiveAsync)}");
-            Message message = null;
-            while (true)
+
+            try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (message != null)
-                {
-                    break;
-                }
+                //TODO: 
+                await Task.Yield();
+                throw new NotImplementedException();
+
             }
-            if (Logging.IsEnabled) Logging.Exit(this, timeout, cancellationToken, $"{nameof(ReceiveAsync)}");
-            return message;
+            finally
+            {
+                if (Logging.IsEnabled) Logging.Exit(this, timeout, cancellationToken, $"{nameof(ReceiveAsync)}");
+            }
         }
         #endregion
 
@@ -160,6 +167,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                //TODO: 
+                await Task.Yield();
+                throw new NotImplementedException();
 
 
             }
@@ -180,7 +190,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                 if (Logging.IsEnabled) Logging.Enter(this, cancellationToken, $"{nameof(DisableMethodsAsync)}");
 
                 cancellationToken.ThrowIfCancellationRequested();
-
+                //TODO: 
+                await Task.Yield();
+                throw new NotImplementedException();
             }
             finally
             {
@@ -195,8 +207,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-
+                //TODO: 
+                await Task.Yield();
+                throw new NotImplementedException();
             }
             finally
             {
@@ -213,6 +226,9 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                //TODO: 
+                await Task.Yield();
+                throw new NotImplementedException();
 
 
             }
@@ -268,7 +284,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             }
         }
 
-        private async Task<Twin> RoundTripTwinMessage(AmqpTwinMessageType amqpTwinMessageType, TwinCollection reportedProperties, CancellationToken cancellationToken )
+        private async Task<Twin> RoundTripTwinMessage(AmqpTwinMessageType amqpTwinMessageType, TwinCollection reportedProperties, CancellationToken cancellationToken)
         {
             if (Logging.IsEnabled) Logging.Enter(this, cancellationToken, $"{nameof(RoundTripTwinMessage)}");
             string correlationId = Guid.NewGuid().ToString();
@@ -316,14 +332,15 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
+                // TODO
+                await Task.Yield();
+                throw new NotImplementedException();
             }
             finally
             {
                 if (Logging.IsEnabled) Logging.Exit(this, cancellationToken, $"{nameof(EnableEventReceiveAsync)}");
             }
         }
-        
         #endregion
 
         #region Accept-Dispose
@@ -376,7 +393,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
         {
             if (Logging.IsEnabled) Logging.Enter(this, outcome, $"{nameof(DisposeMessageAsync)}");
 
-            AmqpIoTOutcome disposeOutcome = new AmqpIoTOutcome(null); // TODO:
+            AmqpIoTOutcome disposeOutcome = new AmqpIoTOutcome(null);
             try
             {
                 // Currently, the same mechanism is used for sending feedback for C2D messages and events received by modules.
@@ -385,34 +402,21 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
                 // the DeviceBoundReceivingLink or the EventsReceivingLink. 
                 // If this changes (i.e. modules are able to receive C2D messages, or devices are able to receive telemetry), this logic 
                 // will have to be updated.
+
+                // TODO
+                disposeOutcome.ThrowIfError();
+
+                await Task.Yield();
+                throw new NotImplementedException();
+
             }
             catch (Exception exception) when (!exception.IsFatal() && !(exception is OperationCanceledException))
             {
                 throw AmqpIoTExceptionAdapter.ConvertToIoTHubException(exception);
             }
-
-            disposeOutcome.ThrowIfError();
-
-            if (Logging.IsEnabled) Logging.Exit(this, outcome, $"{nameof(DisposeMessageAsync)}");
-        }
-        #endregion
-
-        #region Helpers
-        private void TwinMessageListener(Twin twin, string correlationId, TwinCollection twinCollection)
-        {
-            if (correlationId != null)
+            finally
             {
-                // It is a GET, just complete the task.
-                TaskCompletionSource<Twin> task;
-                if (_twinResponseCompletions.TryRemove(correlationId, out task))
-                {
-                    task.SetResult(twin);
-                }
-            }
-            else
-            {
-                // It is a PATCH, just call the callback with the TwinCollection
-                _desiredPropertyListener(twinCollection);
+                if (Logging.IsEnabled) Logging.Exit(this, outcome, $"{nameof(DisposeMessageAsync)}");
             }
         }
         #endregion
@@ -429,6 +433,6 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 
         }
         #endregion
-
     }
 }
+#pragma warning restore IDE0060 // Remove unused parameter - TODO: REMOVE after implementation is ready.

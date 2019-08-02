@@ -37,10 +37,19 @@ namespace Microsoft.Azure.Devices.Client
         /// <param name="transportType">Type of the transport.</param>
         /// <param name="prefetchCount">The prefetch count (Total AMQP Link credit).</param>
         public AmqpTransportSettings(TransportType transportType, uint prefetchCount)
-            :this(transportType, prefetchCount, new AmqpConnectionPoolSettings())
+            : this(transportType, prefetchCount, new AmqpConnectionPoolSettings())
         {
         }
 
+        /// <summary>Initializes a new instance of the <see cref="AmqpTransportSettings"/> class.</summary>
+        /// <param name="transportType">Type of the transport.</param>
+        /// <param name="prefetchCount">The prefetch count.</param>
+        /// <param name="amqpConnectionPoolSettings">The amqp connection pool settings.</param>
+        /// <exception cref="ArgumentOutOfRangeException">prefetchCount - Must be greater than zero
+        /// or
+        /// transportType - Must specify Amqp_WebSocket_Only or Amqp_Tcp_Only
+        /// or
+        /// transportType - null</exception>
         public AmqpTransportSettings(TransportType transportType, uint prefetchCount, AmqpConnectionPoolSettings amqpConnectionPoolSettings)
         {
             this._operationTimeout = s_defaultOperationTimeout;
@@ -92,7 +101,8 @@ namespace Microsoft.Azure.Devices.Client
         /// <value>
         /// The operation timeout.
         /// </value>
-        public TimeSpan OperationTimeout {
+        public TimeSpan OperationTimeout
+        {
             get { return this._operationTimeout; }
             set { this.SetOperationTimeout(value); }
         }

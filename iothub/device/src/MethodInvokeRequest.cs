@@ -12,15 +12,8 @@ namespace Microsoft.Azure.Devices.Client
     /// </summary>
     internal class MethodInvokeRequest
     {
-        internal MethodInvokeRequest() { } // @ailn: for serialization only
+        internal MethodInvokeRequest() { } // For serialization only.
 
-        /// <summary>
-        /// Creates an instance of DirectMethodRequest type
-        /// </summary>
-        /// <param name="methodName">Method name</param>
-        /// <param name="responseTimeout">Method timeout</param>
-        /// <param name="connectionTimeout">Device connection timeout</param>
-        /// <exception cref="ArgumentException">If <b>methodName</b> is null or whitespace</exception>
         public MethodInvokeRequest(string methodName, string payload, TimeSpan? responseTimeout, TimeSpan? connectionTimeout)
         {
             if (string.IsNullOrWhiteSpace(methodName))
@@ -36,7 +29,7 @@ namespace Microsoft.Azure.Devices.Client
             }
 
             this.ResponseTimeout = responseTimeout;
-            this.ConnectionTimeout = connectionTimeout; 
+            this.ConnectionTimeout = connectionTimeout;
         }
 
         /// <summary>

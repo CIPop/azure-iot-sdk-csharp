@@ -15,7 +15,5 @@ namespace Microsoft.Azure.Devices.Client.Transport.Amqp
 {
     internal class AmqpIoTConnectionCBS : AmqpIoTConnection
     {
-        private AuthenticationWithTokenRefresh _tokenRefresher;
-
     }
 }

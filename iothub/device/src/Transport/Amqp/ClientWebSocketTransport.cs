@@ -17,12 +17,11 @@ namespace Microsoft.Azure.Amqp.Transport
     {
         static readonly AsyncCallback onReadComplete = OnReadComplete;
         static readonly AsyncCallback onWriteComplete = OnWriteComplete;
-        static readonly TimeSpan CloseTimeout = TimeSpan.FromSeconds(30);
 
         readonly ClientWebSocket webSocket;
         readonly EndPoint localEndPoint;
         readonly EndPoint remoteEndPoint;
-        volatile CancellationTokenSource writeCancellationTokenSource;
+        readonly CancellationTokenSource writeCancellationTokenSource;
         bool disposed;
 
         public ClientWebSocketTransport(ClientWebSocket webSocket, EndPoint localEndpoint, EndPoint remoteEndpoint)
@@ -188,46 +187,10 @@ namespace Microsoft.Azure.Amqp.Transport
             var webSocketState = this.webSocket.State;
             if (webSocketState != WebSocketState.Closed && webSocketState != WebSocketState.Aborted)
             {
-                this.CloseInternalAsync(CloseTimeout);
+                this.webSocket.Abort();
             }
 
             return true;
-        }
-
-        async Task CloseInternalAsync(TimeSpan timeout)
-        {
-            try
-            {
-                // Cancel any pending write
-                this.CancelPendingWrite();
-
-                using (var cancellationTokenSource = new CancellationTokenSource(timeout))
-                {
-                    await this.webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, cancellationTokenSource.Token).ConfigureAwait(false);
-                }
-            }
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                {
-                    throw;
-                }
-            }
-
-            // Call Abort anyway to ensure that all WebSocket Resources are released 
-            this.Abort();
-        }
-
-        void CancelPendingWrite()
-        {
-            try
-            {
-                this.writeCancellationTokenSource.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-                // ignore this error
-            }
         }
 
         protected override void AbortInternal()

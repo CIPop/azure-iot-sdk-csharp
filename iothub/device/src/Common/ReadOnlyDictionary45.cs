@@ -1,16 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.Azure.Devices.Common;
+using Microsoft.Azure.Devices.Client.Common;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Contracts;
+
 namespace Microsoft.Azure.Devices.Client
 {
-    using Microsoft.Azure.Devices.Common;
-    using Microsoft.Azure.Devices.Client.Common;
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.Contracts;
-
+    // TODO: API breaking change: this type shouldn't be public API.
     /// <summary>
     /// Read-only wrapper for another generic dictionary.
     /// </summary>
@@ -18,7 +19,7 @@ namespace Microsoft.Azure.Devices.Client
     /// <typeparam name="TValue">Type to be used for values</typeparam>
     [Serializable]
     [DebuggerDisplay("Count = {Count}")]
-    public class ReadOnlyDictionary45<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary //, IReadOnlyDictionary<TKey, TValue>
+    internal class ReadOnlyDictionary45<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary //, IReadOnlyDictionary<TKey, TValue>
     {
         readonly IDictionary<TKey, TValue> m_dictionary;
 
@@ -32,8 +33,10 @@ namespace Microsoft.Azure.Devices.Client
         ValueCollection m_values;
 
         [NonSerialized]
-        IReadOnlyIndicator m_readOnlyIndicator;
+        readonly IReadOnlyIndicator m_readOnlyIndicator;
 
+        /// <summary>Initializes a new instance of the <see cref="ReadOnlyDictionary45{TKey, TValue}"/> class.</summary>
+        /// <param name="dictionary">The dictionary.</param>
         public ReadOnlyDictionary45(IDictionary<TKey, TValue> dictionary)
             : this(dictionary, new AlwaysReadOnlyIndicator())
         {
@@ -41,20 +44,19 @@ namespace Microsoft.Azure.Devices.Client
 
         internal ReadOnlyDictionary45(IDictionary<TKey, TValue> dictionary, IReadOnlyIndicator readOnlyIndicator)
         {
-            if (dictionary == null)
-            {
-                throw new ArgumentNullException("dictionary");
-            }
             Contract.EndContractBlock();
-            m_dictionary = dictionary;
+            m_dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
             m_readOnlyIndicator = readOnlyIndicator;
         }
 
+        /// <summary>Gets the dictionary.</summary>
+        /// <value>The dictionary.</value>
         protected IDictionary<TKey, TValue> Dictionary
         {
             get { return m_dictionary; }
         }
 
+        /// <summary>Gets an <see cref="T:System.Collections.Generic.ICollection`1"/> containing the keys of the <see cref="T:System.Collections.Generic.IDictionary`2"/>.</summary>
         public KeyCollection Keys
         {
             get
@@ -68,6 +70,7 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
+        /// <summary>Gets an <see cref="T:System.Collections.Generic.ICollection`1"/> containing the values in the <see cref="T:System.Collections.Generic.IDictionary`2"/>.</summary>
         public ValueCollection Values
         {
             get
@@ -83,6 +86,9 @@ namespace Microsoft.Azure.Devices.Client
 
         #region IDictionary<TKey, TValue> Members
 
+        /// <summary>Determines whether the <see cref="T:System.Collections.Generic.IDictionary`2"/> contains an element with the specified key.</summary>
+        /// <param name="key">The key to locate in the <see cref="T:System.Collections.Generic.IDictionary`2"/>.</param>
+        /// <returns>true if the <see cref="T:System.Collections.Generic.IDictionary`2"/> contains an element with the key; otherwise, false.</returns>
         public bool ContainsKey(TKey key)
         {
             return m_dictionary.ContainsKey(key);
@@ -96,6 +102,12 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
+        /// <summary>Gets the value associated with the specified key.</summary>
+        /// <param name="key">The key whose value to get.</param>
+        /// <param name="value">
+        /// When this method returns, the value associated with the specified key, if the key is found; otherwise, the default value for the type of the value parameter. This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>true if the object that implements <see cref="T:System.Collections.Generic.IDictionary`2"/> contains an element with the specified key; otherwise, false.</returns>
         public bool TryGetValue(TKey key, out TValue value)
         {
             return m_dictionary.TryGetValue(key, out value);
@@ -109,6 +121,9 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
+        /// <summary>Gets the value with the specified key.</summary>
+        /// <param name="key">The key.</param>
+        /// <returns>The value.</returns>
         public TValue this[TKey key]
         {
             get
@@ -266,8 +281,7 @@ namespace Microsoft.Azure.Devices.Client
 
         IDictionaryEnumerator IDictionary.GetEnumerator()
         {
-            IDictionary d = m_dictionary as IDictionary;
-            if (d != null)
+            if (m_dictionary is IDictionary d)
             {
                 return d.GetEnumerator();
             }
@@ -353,15 +367,13 @@ namespace Microsoft.Azure.Devices.Client
                 throw Fx.Exception.Argument("array", Resources.InvalidBufferSize);
             }
 
-            KeyValuePair<TKey, TValue>[] pairs = array as KeyValuePair<TKey, TValue>[];
-            if (pairs != null)
+            if (array is KeyValuePair<TKey, TValue>[] pairs)
             {
                 m_dictionary.CopyTo(pairs, index);
             }
             else
             {
-                DictionaryEntry[] dictEntryArray = array as DictionaryEntry[];
-                if (dictEntryArray != null)
+                if (array is DictionaryEntry[] dictEntryArray)
                 {
                     foreach (var item in m_dictionary)
                     {
@@ -370,8 +382,7 @@ namespace Microsoft.Azure.Devices.Client
                 }
                 else
                 {
-                    object[] objects = array as object[];
-                    if (objects == null)
+                    if (!(array is object[] objects))
                     {
                         throw Fx.Exception.Argument("array", Resources.InvalidBufferSize);
                     }
@@ -402,8 +413,7 @@ namespace Microsoft.Azure.Devices.Client
             {
                 if (m_syncRoot == null)
                 {
-                    ICollection c = m_dictionary as ICollection;
-                    if (c != null)
+                    if (m_dictionary is ICollection c)
                     {
                         m_syncRoot = c.SyncRoot;
                     }
@@ -420,7 +430,7 @@ namespace Microsoft.Azure.Devices.Client
         private struct DictionaryEnumerator : IDictionaryEnumerator
         {
             private readonly IDictionary<TKey, TValue> m_dictionary;
-            private IEnumerator<KeyValuePair<TKey, TValue>> m_enumerator;
+            private readonly IEnumerator<KeyValuePair<TKey, TValue>> m_enumerator;
 
             public DictionaryEnumerator(IDictionary<TKey, TValue> dictionary)
             {
@@ -466,7 +476,7 @@ namespace Microsoft.Azure.Devices.Client
         public sealed class KeyCollection : ICollection<TKey>, ICollection
         {
             private readonly ICollection<TKey> m_collection;
-            
+
             [NonSerialized]
             private object m_syncRoot;
 
@@ -475,11 +485,7 @@ namespace Microsoft.Azure.Devices.Client
 
             internal KeyCollection(ICollection<TKey> collection, IReadOnlyIndicator readOnlyIndicator)
             {
-                if (collection == null)
-                {
-                    throw Fx.Exception.ArgumentNull("collection");
-                }
-                m_collection = collection;
+                m_collection = collection ?? throw Fx.Exception.ArgumentNull(nameof(collection));
                 m_readOnlyIndicator = readOnlyIndicator;
             }
 
@@ -573,8 +579,7 @@ namespace Microsoft.Azure.Devices.Client
                 {
                     if (m_syncRoot == null)
                     {
-                        ICollection c = m_collection as ICollection;
-                        if (c != null)
+                        if (m_collection is ICollection c)
                         {
                             m_syncRoot = c.SyncRoot;
                         }
@@ -604,12 +609,7 @@ namespace Microsoft.Azure.Devices.Client
 
             internal ValueCollection(ICollection<TValue> collection, IReadOnlyIndicator readOnlyIndicator)
             {
-                if (collection == null)
-                {
-                    throw Fx.Exception.ArgumentNull("collection");
-                }
-
-                m_collection = collection;
+                m_collection = collection ?? throw Fx.Exception.ArgumentNull(nameof(collection));
                 m_readOnlyIndicator = readOnlyIndicator;
             }
 
@@ -703,8 +703,7 @@ namespace Microsoft.Azure.Devices.Client
                 {
                     if (m_syncRoot == null)
                     {
-                        ICollection c = m_collection as ICollection;
-                        if (c != null)
+                        if (m_collection is ICollection c)
                         {
                             m_syncRoot = c.SyncRoot;
                         }
@@ -729,7 +728,8 @@ namespace Microsoft.Azure.Devices.Client
         }
     }
 
-    public interface IReadOnlyIndicator
+    //TODO: API breaking change.
+    internal interface IReadOnlyIndicator
     {
         bool IsReadOnly { get; }
     }

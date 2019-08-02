@@ -15,10 +15,12 @@ namespace Microsoft.Azure.Devices.Client
     using System.Globalization;
     using System.Text;
 
+    /// <summary>A class that allows creation of Shared Access Signature strings.</summary>
     public class SharedAccessSignatureBuilder
     {
         private string key;
 
+        /// <summary>Initializes a new instance of the <see cref="SharedAccessSignatureBuilder"/> class.</summary>
         public SharedAccessSignatureBuilder()
         {
 #if NETMF
@@ -28,8 +30,12 @@ namespace Microsoft.Azure.Devices.Client
 #endif
         }
 
+        /// <summary>Gets or sets the name of the key.</summary>
+        /// <value>The name of the key.</value>
         public string KeyName { get; set; }
 
+        /// <summary>Gets or sets the BASE64 encoded key.</summary>
+        /// <value>The key.</value>
         public string Key
         {
             get
@@ -46,10 +52,16 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
+        /// <summary>Gets or sets the target.</summary>
+        /// <value>The target.</value>
         public string Target { get; set; }
 
+        /// <summary>Gets or sets the time to live.</summary>
+        /// <value>The time to live.</value>
         public TimeSpan TimeToLive { get; set; }
 
+        /// <summary>Converts to signature.</summary>
+        /// <returns>The signature.</returns>
         public string ToSignature()
         {
             return BuildSignature(this.KeyName, this.Key, this.Target, this.TimeToLive);
@@ -61,9 +73,11 @@ namespace Microsoft.Azure.Devices.Client
             string audience = WebUtility.UrlEncode(target);
 
 #if !NETMF
-            List<string> fields = new List<string>();
-            fields.Add(audience);
-            fields.Add(expiresOn);
+            List<string> fields = new List<string>
+            {
+                audience,
+                expiresOn
+            };
 #endif
 
             // Example string to be signed:
@@ -137,6 +151,11 @@ namespace Microsoft.Azure.Devices.Client
             return Convert.ToBase64String(hmac);
         }
 #else
+        /// <summary>Signs the specified request string using the specified key.</summary>
+        /// <param name="requestString">The request string.</param>
+        /// <param name="key">The key.</param>
+        /// <returns>The HMACSHA256 signed result.</returns>
+        /// <remarks>This can be overriden to implement custom key storage such as TPM or other Hardware Security Modules.</remarks>
         protected virtual string Sign(string requestString, string key)
         {
             using (var algorithm = new HMACSHA256(Convert.FromBase64String(key)))

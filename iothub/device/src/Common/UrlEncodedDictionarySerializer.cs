@@ -10,7 +10,8 @@ namespace Microsoft.Azure.Devices.Client.Common
     using Microsoft.Azure.Devices.Client.Extensions;
     using Microsoft.Azure.Devices.Common;
 
-    public class UrlEncodedDictionarySerializer
+    // TODO: API breaking change: this type shouldn't be public API.
+    internal class UrlEncodedDictionarySerializer
     {
         public const char KeyValueSeparator = '=';
         public const char PropertySeparator = '&';
@@ -85,7 +86,7 @@ namespace Microsoft.Azure.Devices.Client.Common
                 {
                     firstProperty = property;
                 }
-                
+
                 //In case of value, '=' and ',' take up length, otherwise just ','
                 estimatedLength += property.Key.Length + (property.Value?.Length + 2 ?? 1);
                 propertiesCount++;

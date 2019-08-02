@@ -21,6 +21,7 @@ namespace Microsoft.Azure.Devices.Client.HsmAuthentication
         /// <param name="signatureProvider">Provider for the token signature.</param>
         /// <param name="deviceId">Device Identifier.</param>
         /// <param name="moduleId">Module Identifier.</param>
+        /// <param name="generationId">Generation Identifier.</param>
         public ModuleAuthenticationWithHsm(ISignatureProvider signatureProvider, string deviceId, string moduleId, string generationId) : base(deviceId, moduleId)
         {
             _signatureProvider = signatureProvider ?? throw new ArgumentNullException(nameof(signatureProvider));
@@ -28,11 +29,13 @@ namespace Microsoft.Azure.Devices.Client.HsmAuthentication
         }
 
         /// <summary>
-        /// 
+        /// Creates a new token with a suggested TTL. This method is thread-safe.
         /// </summary>
-        /// <param name="iotHub">IotHub hostname</param>
-        /// <param name="suggestedTimeToLive">Suggested time to live seconds</param>
-        /// <returns></returns>
+        /// <param name="iotHub">The IoT Hub domain name.</param>
+        /// <param name="suggestedTimeToLive">The suggested TTL.</param>
+        /// <returns>
+        /// The token string.
+        /// </returns>
         protected override async Task<string> SafeCreateNewToken(string iotHub, int suggestedTimeToLive)
         {
             DateTime startTime = DateTime.UtcNow;

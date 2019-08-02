@@ -117,7 +117,7 @@ namespace Microsoft.Azure.Devices.Client.Transport.Mqtt
             this.serviceBoundTwoWayProcessor = new OrderedTwoPhaseWorkQueue<int, PublishWorkItem>(this.SendMessageToServerAsync, p => p.Value.PacketId, this.ProcessAckAsync);
         }
 
-#region IChannelHandler overrides
+        #region IChannelHandler overrides
 
         public override void ChannelActive(IChannelHandlerContext context)
         {

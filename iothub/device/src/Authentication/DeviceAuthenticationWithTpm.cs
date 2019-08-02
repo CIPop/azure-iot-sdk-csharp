@@ -13,19 +13,29 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Devices.Client
 {
     /// <summary>
-    /// Authentication method that uses a shared access signature token and allows for token refresh. 
+    /// Authentication method that uses a shared access signature token stored within a Trusted Platform Module (TPM) and allows for token refresh.
     /// </summary>
     public sealed class DeviceAuthenticationWithTpm : DeviceAuthenticationWithTokenRefresh
     {
-        private SecurityProviderTpm _securityProvider;
+        private readonly SecurityProviderTpm _securityProvider;
 
+        /// <summary>Initializes a new instance of the <see cref="DeviceAuthenticationWithTpm"/> class.</summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="securityProvider">The security provider.</param>
+        /// <exception cref="ArgumentNullException">securityProvider</exception>
         public DeviceAuthenticationWithTpm(
-            string deviceId, 
+            string deviceId,
             SecurityProviderTpm securityProvider) : base(deviceId)
         {
             _securityProvider = securityProvider ?? throw new ArgumentNullException(nameof(securityProvider));
         }
 
+        /// <summary>Initializes a new instance of the <see cref="DeviceAuthenticationWithTpm"/> class.</summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="securityProvider">The security provider.</param>
+        /// <param name="suggestedTimeToLiveSeconds">The suggested time to live seconds.</param>
+        /// <param name="timeBufferPercentage">The time buffer percentage.</param>
+        /// <exception cref="ArgumentNullException">securityProvider</exception>
         public DeviceAuthenticationWithTpm(
             string deviceId,
             SecurityProviderTpm securityProvider,
@@ -35,6 +45,11 @@ namespace Microsoft.Azure.Devices.Client
             _securityProvider = securityProvider ?? throw new ArgumentNullException(nameof(securityProvider));
         }
 
+        /// <summary>Allows the application to create a new token.</summary>
+        /// <param name="iotHub">The iot hub.</param>
+        /// <param name="suggestedTimeToLiveSeconds">The suggested time to live seconds.</param>
+        /// <returns>The token.</returns>
+        /// <remarks>It is guaranteed that this method is not called twice for the same token from different threads.</remarks>
         protected override Task<string> SafeCreateNewToken(string iotHub, int suggestedTimeToLiveSeconds)
         {
             var builder = new TpmSharedAccessSignatureBuilder(_securityProvider)
@@ -50,7 +65,7 @@ namespace Microsoft.Azure.Devices.Client
 
         private class TpmSharedAccessSignatureBuilder : SharedAccessSignatureBuilder
         {
-            private SecurityProviderTpm _securityProvider;
+            private readonly SecurityProviderTpm _securityProvider;
 
             public TpmSharedAccessSignatureBuilder(SecurityProviderTpm securityProvider)
             {

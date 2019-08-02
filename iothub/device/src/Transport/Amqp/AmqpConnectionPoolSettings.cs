@@ -51,8 +51,14 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
+        /// <summary>Gets or sets a value indicating whether this <see cref="AmqpConnectionPoolSettings"/> is pooling.</summary>
+        /// <value>
+        ///   <c>true</c> if pooling; otherwise, <c>false</c>.</value>
         public bool Pooling { get; set; }
 
+        /// <summary>Gets or sets the connection idle timeout.</summary>
+        /// <value>The connection idle timeout.</value>
+        /// <exception cref="ArgumentOutOfRangeException">value</exception>
         public TimeSpan ConnectionIdleTimeout
         {
             get { return this._connectionIdleTimeout; }
@@ -70,11 +76,17 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
-        public string PoolName {
+        /// <summary>Gets or sets the name of the pool.</summary>
+        /// <value>The name of the pool.</value>
+        public string PoolName
+        {
             get;
             set; // TODO: check upperCase/Lowercase only.
         }
 
+        /// <summary>Equalses the specified other.</summary>
+        /// <param name="other">The other.</param>
+        /// <returns></returns>
         public bool Equals(AmqpConnectionPoolSettings other)
         {
             if (other == null)

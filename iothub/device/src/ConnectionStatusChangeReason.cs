@@ -8,13 +8,37 @@ namespace Microsoft.Azure.Devices.Client
     /// </summary>   
     public enum ConnectionStatusChangeReason
     {
+        /// <summary>
+        /// Connection established.
+        /// </summary>
         Connection_Ok,
+        /// <summary>
+        /// The SAS token expired.
+        /// </summary>
         Expired_SAS_Token,
+        /// <summary>
+        /// The device is disabled.
+        /// </summary>
         Device_Disabled,
+        /// <summary>
+        /// Bad credential supplied during authentication.
+        /// </summary>
         Bad_Credential,
+        /// <summary>
+        /// Stopping retries per the specified Retry Policy.
+        /// </summary>
         Retry_Expired,
+        /// <summary>
+        /// No network available.
+        /// </summary>
         No_Network,
+        /// <summary>
+        /// A communication error occured.
+        /// </summary>
         Communication_Error,
-        Client_Close                    
+        /// <summary>
+        /// The application closed the client.
+        /// </summary>
+        Client_Close
     }
 }

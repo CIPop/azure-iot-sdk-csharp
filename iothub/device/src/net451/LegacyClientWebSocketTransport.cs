@@ -224,14 +224,14 @@ namespace Microsoft.Azure.Devices.Client
                 var webSocketState = this.webSocket.State;
                 if (webSocketState != IotHubClientWebSocket.WebSocketState.Closed && webSocketState != IotHubClientWebSocket.WebSocketState.Aborted)
                 {
-                    this.CloseInternalAsync();
+                    this.webSocket.Abort();
                 }
                 return true;
             }
             finally
             {
                 if (Logging.IsEnabled) Logging.Exit(this, $"{nameof(LegacyClientWebSocketTransport)}.{nameof(CloseInternal)}");
-            }            
+            }
         }
 
         async Task CloseInternalAsync()
@@ -368,7 +368,7 @@ namespace Microsoft.Azure.Devices.Client
 
         void ThrowIfNotOpen()
         {
-           try
+            try
             {
                 if (Logging.IsEnabled) Logging.Enter(this, $"{nameof(LegacyClientWebSocketTransport)}.{nameof(ThrowIfNotOpen)}");
 
