@@ -4,12 +4,12 @@
 namespace Microsoft.Azure.Devices.Shared
 {
     /// <summary>
-    /// ETag Holder Interface
+    /// ETag Holder Interface.
     /// </summary>
     public interface IETagHolder
     {
         /// <summary>
-        /// ETag value
+        /// Gets or sets eTag value.
         /// </summary>
         string ETag { get; set; }
     }

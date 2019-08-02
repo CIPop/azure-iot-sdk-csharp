@@ -18,6 +18,6 @@ namespace Microsoft.Azure.Devices
         /// <summary>
         /// Represents a device in the Connected state.
         /// </summary>
-        Connected = 1
+        Connected = 1,
     }
 }

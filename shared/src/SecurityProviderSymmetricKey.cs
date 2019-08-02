@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Devices.Shared
         private readonly string _secondaryKey;
 
         /// <summary>
-        /// Initializes a new instance of the SecurityProviderSymmetricKey class.
+        /// Initializes a new instance of the <see cref="SecurityProviderSymmetricKey"/> class.
         /// </summary>
         /// <param name="registrationId">The Provisioning service Registration ID for this device.</param>
         /// <param name="primaryKey">The primary key for this device.</param>
@@ -30,6 +30,7 @@ namespace Microsoft.Azure.Devices.Shared
         /// <summary>
         /// Gets the Registration ID used during device enrollment.
         /// </summary>
+        /// <returns>The Registration ID.</returns>
         public override string GetRegistrationID()
         {
             return _registrationId;
@@ -38,19 +39,31 @@ namespace Microsoft.Azure.Devices.Shared
         /// <summary>
         /// Gets the primary key.
         /// </summary>
-        /// <returns>primary key</returns>
-        public string GetPrimaryKey() { return _primaryKey; }
+        /// <returns>primary key.</returns>
+#pragma warning disable CA1024 // Use properties where appropriate (Reason: API compat.)
+        public string GetPrimaryKey()
+#pragma warning restore CA1024 // Use properties where appropriate
+        {
+            return _primaryKey;
+        }
 
         /// <summary>
         /// Gets the secondary key.
         /// </summary>
-        /// <returns>secondary key</returns>
-        public string GetSecondaryKey() { return _secondaryKey; }
+        /// <returns>secondary key.</returns>
+#pragma warning disable CA1024 // Use properties where appropriate (Reason: API compat.)
+        public string GetSecondaryKey()
+#pragma warning restore CA1024 // Use properties where appropriate
+        {
+            return _secondaryKey;
+        }
 
         /// <summary>
         /// Releases all resources.
         /// </summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to releases only unmanaged resources.</param>
-        protected override void Dispose(bool disposing) { }
+        protected override void Dispose(bool disposing)
+        {
+        }
     }
 }

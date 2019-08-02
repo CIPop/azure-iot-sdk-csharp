@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Devices.Shared
         private readonly X509Certificate2Collection _certificateChain;
 
         /// <summary>
-        /// Initializes a new instance of the SecurityProviderX509Certificate class.
+        /// Initializes a new instance of the <see cref="SecurityProviderX509Certificate"/> class.
         /// </summary>
         /// <param name="clientCertificate">The client certificate used for authentication.</param>
         /// <param name="certificateChain">The certificate chain leading to the root certificate uploaded to the Provisioning service.</param>
@@ -48,6 +48,14 @@ namespace Microsoft.Azure.Devices.Shared
         /// Releases the unmanaged resources used by the SecurityProviderX509Certificate and optionally disposes of the managed resources.
         /// </summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to releases only unmanaged resources.</param>
-        protected override void Dispose(bool disposing) { }
+        protected override void Dispose(bool disposing)
+        {
+#if !NET451
+            if (disposing)
+            {
+                _clientCertificate.Dispose();
+            }
+#endif
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Devices.Shared
     public class ETagHolder : IETagHolder
     {
         /// <summary>
-        /// ETag value.
+        /// Gets or sets eTag value.
         /// </summary>
         public string ETag { get; set; }
     }

@@ -11,10 +11,10 @@ namespace Microsoft.Azure.Devices.Shared
         private readonly string _registrationId;
 
         /// <summary>
-        /// Initializes a new instance of the SecurityProviderTpm class.
+        /// Initializes a new instance of the <see cref="SecurityProviderTpm"/> class.
         /// </summary>
         /// <param name="registrationId">The Provisioning service Registration ID for this device.</param>
-        public SecurityProviderTpm(string registrationId)
+        protected SecurityProviderTpm(string registrationId)
         {
             _registrationId = registrationId;
         }
@@ -22,6 +22,7 @@ namespace Microsoft.Azure.Devices.Shared
         /// <summary>
         /// Gets the Registration ID used during device enrollment.
         /// </summary>
+        /// <returns>The Registration ID.</returns>
         public override string GetRegistrationID()
         {
             return _registrationId;

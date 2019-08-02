@@ -1,42 +1,51 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Azure.Devices.Shared
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
-    using Microsoft.Azure.Devices.Common;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json.Serialization;
-
     /// <summary>
-    /// Converts <see cref="Twin"/> to Json
+    /// Converts <see cref="Twin"/> to Json.
     /// </summary>
     public sealed class TwinJsonConverter : JsonConverter
     {
-        const string DeviceIdJsonTag = "deviceId";
-        const string ModuleIdJsonTag = "moduleId";
-        const string ConfigurationsJsonTag = "configurations";
-        const string CapabilitiesJsonTag = "capabilities";
-        const string IotEdgeName = "iotEdge";
-        const string ETagJsonTag = "etag";
-        const string TagsJsonTag = "tags";
-        const string PropertiesJsonTag = "properties";
-        const string DesiredPropertiesJsonTag = "desired";
-        const string ReportedPropertiesJsonTag = "reported";
-        const string VersionTag = "version";
-        const string StatusTag = "status";
-        const string StatusReasonTag = "statusReason";
-        const string StatusUpdateTimeTag = "statusUpdateTime";
-        const string ConnectionStateTag = "connectionState";
-        const string LastActivityTimeTag = "lastActivityTime";
-        const string CloudToDeviceMessageCountTag = "cloudToDeviceMessageCount";
-        const string AuthenticationTypeTag = "authenticationType";
-        const string X509ThumbprintTag = "x509Thumbprint";
+        private const string DeviceIdJsonTag = "deviceId";
+        private const string ModuleIdJsonTag = "moduleId";
+        private const string ConfigurationsJsonTag = "configurations";
+        private const string CapabilitiesJsonTag = "capabilities";
+        private const string IotEdgeName = "iotEdge";
+        private const string ETagJsonTag = "etag";
+        private const string TagsJsonTag = "tags";
+        private const string PropertiesJsonTag = "properties";
+        private const string DesiredPropertiesJsonTag = "desired";
+        private const string ReportedPropertiesJsonTag = "reported";
+        private const string VersionTag = "version";
+        private const string StatusTag = "status";
+        private const string StatusReasonTag = "statusReason";
+        private const string StatusUpdateTimeTag = "statusUpdateTime";
+        private const string ConnectionStateTag = "connectionState";
+        private const string LastActivityTimeTag = "lastActivityTime";
+        private const string CloudToDeviceMessageCountTag = "cloudToDeviceMessageCount";
+        private const string AuthenticationTypeTag = "authenticationType";
+        private const string X509ThumbprintTag = "x509Thumbprint";
+
+        /// <summary>
+        /// Gets a value indicating whether converter Can Read flag.
+        /// </summary>
+        public override bool CanRead => true;
+
+        /// <summary>
+        /// Gets a value indicating whether value indicating whether this TwinJsonConverter can read JSON.
+        /// </summary>
+        public override bool CanWrite => true;
 
         /// <summary>
         /// Converts <see cref="Twin"/> to its equivalent Json representation.
@@ -46,14 +55,15 @@ namespace Microsoft.Azure.Devices.Shared
         /// <param name="serializer">the Json serializer.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
+            if (writer == null) throw new ArgumentNullException(nameof(writer));
+            if (serializer == null) throw new ArgumentNullException(nameof(writer));
+
             if (value == null)
             {
                 return;
             }
 
-            Twin twin = value as Twin;
-
-            if (twin == null)
+            if (!(value is Twin twin))
             {
                 throw new InvalidOperationException("Object passed is not of type Twin.");
             }
@@ -161,11 +171,16 @@ namespace Microsoft.Azure.Devices.Shared
         /// Converts Json to its equivalent <see cref="Twin"/> representation.
         /// </summary>
         /// <param name="reader">the Json reader.</param>
-        /// <param name="objectType">object type</param>
-        /// <param name="existingValue">exisiting value</param>
+        /// <param name="objectType">object type.</param>
+        /// <param name="existingValue">exisiting value.</param>
         /// <param name="serializer">the Json serializer.</param>
+        /// <returns>The Twin object.</returns>
+        [SuppressMessage("Microsoft.Maintainability", "CA1502", Justification = "AppCompat, existing code.")]
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
+            if (reader == null) throw new ArgumentNullException(nameof(reader));
+            if (serializer == null) throw new ArgumentNullException(nameof(serializer));
+
             var twin = new Twin();
 
             if (reader.TokenType != JsonToken.StartObject)
@@ -182,7 +197,7 @@ namespace Microsoft.Azure.Devices.Shared
 
                 if (reader.TokenType != JsonToken.PropertyName)
                 {
-                    // TODO: validate that this code is not reached.
+                    Debug.Fail("Should not be reached.");
                     continue;
                 }
 
@@ -204,7 +219,7 @@ namespace Microsoft.Azure.Devices.Shared
                         var capabilitiesDictionary = serializer.Deserialize<Dictionary<string, object>>(reader);
                         twin.Capabilities = new DeviceCapabilities
                         {
-                            IotEdge = capabilitiesDictionary.ContainsKey(IotEdgeName) && (bool)capabilitiesDictionary[IotEdgeName]
+                            IotEdge = capabilitiesDictionary.ContainsKey(IotEdgeName) && (bool)capabilitiesDictionary[IotEdgeName],
                         };
                         break;
                     case ETagJsonTag:
@@ -215,6 +230,7 @@ namespace Microsoft.Azure.Devices.Shared
                         {
                             throw new InvalidOperationException("Tags Json not a Dictionary.");
                         }
+
                         twin.Tags = new TwinCollection(JToken.ReadFrom(reader) as JObject);
                         break;
                     case PropertiesJsonTag:
@@ -261,20 +277,11 @@ namespace Microsoft.Azure.Devices.Shared
         }
 
         /// <summary>
-        /// Converter Can Read flag
+        /// Value indicating whether this TwinJsonConverter can write JSON.
         /// </summary>
-        public override bool CanRead => true;
-
-        /// <summary>
-        /// Value indicating whether this TwinJsonConverter can read JSON
-        /// </summary>
-        public override bool CanWrite => true;
-
-        /// <summary>
-        /// Value indicating whether this TwinJsonConverter can write JSON
-        /// </summary>
+        /// <param name="objectType">The object type.</param>
+        /// <returns>True if the object can write JSON.</returns>
         public override bool CanConvert(Type objectType) => typeof(Twin).GetTypeInfo().IsAssignableFrom(objectType.GetTypeInfo());
-
 
         private static Dictionary<string, object> GetTagsForTwin(JsonReader reader)
         {

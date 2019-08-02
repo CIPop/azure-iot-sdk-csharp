@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Globalization;
+
 namespace Microsoft.Azure.Devices.Common
 {
-    using System;
-    using System.Globalization;
-
     /// <summary>
     /// String extension class for common operations.
     /// This class is used by the SDK and should not be directly used by applications.
@@ -54,6 +54,7 @@ namespace Microsoft.Azure.Devices.Common
         /// <returns>The truncated string.</returns>
         public static string Truncate(this string message, int maximumSize)
         {
+            if (message == null) throw new ArgumentNullException(nameof(message));
             return message.Length > maximumSize ? message.Substring(0, maximumSize) + "...(truncated)" : message;
         }
     }

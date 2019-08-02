@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 namespace Microsoft.Azure.Devices.Shared
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
-    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses",
+    [SuppressMessage(
+        "Microsoft.Performance",
+        "CA1812:AvoidUninstantiatedInternalClasses",
         Justification = "CodeAnalysis limitation: TwinCollectionJsonConverter is actually used by TwinCollection")]
     internal class TwinCollectionJsonConverter : JsonConverter
     {
@@ -21,8 +24,7 @@ namespace Microsoft.Azure.Devices.Shared
                 return;
             }
 
-            TwinCollection properties = value as TwinCollection;
-            if (properties == null)
+            if (!(value is TwinCollection properties))
             {
                 throw new InvalidOperationException("Object passed is not of type TwinCollection.");
             }
@@ -38,4 +40,3 @@ namespace Microsoft.Azure.Devices.Shared
         }
     }
 }
-

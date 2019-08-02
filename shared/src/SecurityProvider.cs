@@ -13,13 +13,8 @@ namespace Microsoft.Azure.Devices.Shared
         /// <summary>
         /// Gets the Registration ID used during device enrollment.
         /// </summary>
+        /// <returns>The Registration ID.</returns>
         public abstract string GetRegistrationID();
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the SecurityProvider and optionally disposes of the managed resources.
-        /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to releases only unmanaged resources.</param>
-        protected abstract void Dispose(bool disposing);
 
         /// <summary>
         /// Releases the unmanaged resources and disposes of the managed resources used by the invoker.
@@ -29,5 +24,11 @@ namespace Microsoft.Azure.Devices.Shared
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by the SecurityProvider and optionally disposes of the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to releases only unmanaged resources.</param>
+        protected abstract void Dispose(bool disposing);
     }
 }
