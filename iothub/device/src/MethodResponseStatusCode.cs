@@ -8,8 +8,13 @@ namespace Microsoft.Azure.Devices.Client
     /// </summary>
     public enum MethodResposeStatusCode
     {
+        /// <summary>Bad request</summary>
         BadRequest = 400,
+
+        /// <summary>Application internal error</summary>
         UserCodeException = 500,
+
+        /// <summary>Method not implemented</summary>
         MethodNotImplemented = 501
     }
 }

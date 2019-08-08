@@ -1,17 +1,27 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.Azure.Devices.Shared;
+using System;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
 namespace Microsoft.Azure.Devices.Client
 {
-    using Microsoft.Azure.Devices.Shared;
-    using System;
-    using System.Net;
-    using System.Net.Security;
-    using System.Security.Cryptography.X509Certificates;
-
-    /// <summary>
-    /// contains Amqp transport-specific settings for DeviceClient
-    /// </summary>
+    /// <summary>Contains advanced AMQP transport settings</summary>
+    /// <remarks>
+    ///   <para>
+    /// We recommend that default settings are used in most applications.</para>
+    ///   <para>If more granular control is required, advanced users can tweak this options with the following implications:</para>
+    ///   <list type="bullet">
+    ///     <item>Small timeouts (&lt;30 seconds) potentially consuming more CPU/battery as we will spin-wait on ReceiveAsync.</item>
+    ///     <item>Small timeouts can cause inconsistent states for messages being sent or received.</item>
+    ///     <item>
+    /// There are cases where some of the timeouts out can cause the AMQP stack to become unstable/unusable which could cause a disconnect or data loss.
+    /// </item>
+    ///   </list>
+    /// </remarks>
     public sealed class AmqpTransportSettings : ITransportSettings
     {
         private static readonly TimeSpan s_defaultOperationTimeout = TimeSpan.FromMinutes(1);
@@ -43,7 +53,7 @@ namespace Microsoft.Azure.Devices.Client
 
         /// <summary>Initializes a new instance of the <see cref="AmqpTransportSettings"/> class.</summary>
         /// <param name="transportType">Type of the transport.</param>
-        /// <param name="prefetchCount">The prefetch count.</param>
+        /// <param name="prefetchCount">The prefetch count (Total AMQP Link credit).</param>
         /// <param name="amqpConnectionPoolSettings">The amqp connection pool settings.</param>
         /// <exception cref="ArgumentOutOfRangeException">prefetchCount - Must be greater than zero
         /// or

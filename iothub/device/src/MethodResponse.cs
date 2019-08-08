@@ -53,6 +53,8 @@ namespace Microsoft.Azure.Devices.Client
             }
         }
 
+        /// <summary>Gets the result as json.</summary>
+        /// <value>The result as json.</value>
         public string ResultAsJson => Result == null || Result.Length == 0 ? null : Encoding.UTF8.GetString(Result);
 
         /// <summary>

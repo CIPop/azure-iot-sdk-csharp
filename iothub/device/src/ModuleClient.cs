@@ -345,7 +345,7 @@ namespace Microsoft.Azure.Devices.Client
         /// <summary>
         /// Sends a batch of events to device hub
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="messages">The message.</param>
         /// <returns>The task containing the event</returns>
         public Task SendEventBatchAsync(IEnumerable<Message> messages) => this.internalClient.SendEventBatchAsync(messages);
 
@@ -488,7 +488,7 @@ namespace Microsoft.Azure.Devices.Client
         /// <returns>The message containing the event</returns>
         public Task SendEventAsync(string outputName, Message message, CancellationToken cancellationToken) =>
             this.internalClient.SendEventAsync(outputName, message, cancellationToken);
-        
+
         /// <summary>
         /// Sends a batch of events to device hub
         /// </summary>
@@ -559,7 +559,7 @@ namespace Microsoft.Azure.Devices.Client
         /// <returns>The task containing the event</returns>
         public Task SetMessageHandlerAsync(MessageHandler messageHandler, object userContext, CancellationToken cancellationToken) =>
             this.internalClient.SetMessageHandlerAsync(messageHandler, userContext, cancellationToken);
-        
+
         /// <summary>
         /// Interactively invokes a method on device
         /// </summary>
@@ -588,7 +588,7 @@ namespace Microsoft.Azure.Devices.Client
         /// <param name="methodRequest">Device method parameters (passthrough to device)</param>
         /// <exception cref="OperationCanceledException">Thrown when the operation has been canceled.</exception>  
         /// <returns>Method result</returns>
-        public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId, MethodRequest methodRequest) => 
+        public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId, MethodRequest methodRequest) =>
             InvokeMethodAsync(deviceId, moduleId, methodRequest, CancellationToken.None);
 
         /// <summary>
@@ -600,25 +600,27 @@ namespace Microsoft.Azure.Devices.Client
         /// <param name="cancellationToken">Cancellation Token</param>
         /// <exception cref="OperationCanceledException">Thrown when the operation has been canceled.</exception>  
         /// <returns>Method result</returns>
-        public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId, MethodRequest methodRequest, CancellationToken cancellationToken) => 
+        public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId, MethodRequest methodRequest, CancellationToken cancellationToken) =>
             InvokeMethodAsync(GetModuleMethodUri(deviceId, moduleId), methodRequest, cancellationToken);
 
         private async Task<MethodResponse> InvokeMethodAsync(Uri uri, MethodRequest methodRequest, CancellationToken cancellationToken)
         {
             HttpClientHandler httpClientHandler = null;
-            var customCertificateValidation =  this.certValidator.GetCustomCertificateValidation();
+            var customCertificateValidation = this.certValidator.GetCustomCertificateValidation();
 
             if (customCertificateValidation != null)
             {
 #if NETSTANDARD1_3 || NETSTANDARD2_0
-                httpClientHandler = new HttpClientHandler();
-                httpClientHandler.ServerCertificateCustomValidationCallback = customCertificateValidation;
+                httpClientHandler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = customCertificateValidation
+                };
 #else
-            httpClientHandler = new WebRequestHandler();
-            ((WebRequestHandler)httpClientHandler).ServerCertificateValidationCallback = (sender, certificate, chain, errors) =>
-            {
-                return customCertificateValidation(sender, certificate, chain, errors);
-            };
+                httpClientHandler = new WebRequestHandler();
+                ((WebRequestHandler)httpClientHandler).ServerCertificateValidationCallback = (sender, certificate, chain, errors) =>
+                {
+                    return customCertificateValidation(sender, certificate, chain, errors);
+                };
 #endif
             }
 
@@ -632,10 +634,12 @@ namespace Microsoft.Azure.Devices.Client
                 transportSettings.ClientCertificate = this.internalClient.Certificate;
             }
 
-            HttpTransportHandler httpTransport = new HttpTransportHandler(context, this.internalClient.IotHubConnectionString, transportSettings, httpClientHandler);
-            var methodInvokeRequest = new MethodInvokeRequest(methodRequest.Name, methodRequest.DataAsJson, methodRequest.ResponseTimeout, methodRequest.ConnectionTimeout);
-            var result = await httpTransport.InvokeMethodAsync(methodInvokeRequest, uri, cancellationToken).ConfigureAwait(false);
-            return new MethodResponse(Encoding.UTF8.GetBytes(result.GetPayloadAsJson()), result.Status);
+            using (HttpTransportHandler httpTransport = new HttpTransportHandler(context, this.internalClient.IotHubConnectionString, transportSettings, httpClientHandler))
+            {
+                var methodInvokeRequest = new MethodInvokeRequest(methodRequest.Name, methodRequest.DataAsJson, methodRequest.ResponseTimeout, methodRequest.ConnectionTimeout);
+                var result = await httpTransport.InvokeMethodAsync(methodInvokeRequest, uri, cancellationToken).ConfigureAwait(false);
+                return new MethodResponse(Encoding.UTF8.GetBytes(result.GetPayloadAsJson()), result.Status);
+            }
         }
 
         static Uri GetDeviceMethodUri(string deviceId)

@@ -20,7 +20,6 @@ namespace Microsoft.Azure.Devices.Client
     /// </summary>
     public sealed class MethodRequestInternal : IDisposable
     {
-        readonly object messageLock = new object();
 #if NETMF
         Stream bodyStream;
 #else
@@ -29,11 +28,6 @@ namespace Microsoft.Azure.Devices.Client
         bool disposed;
         bool ownsBodyStream;
         int getBodyCalled;
-#if NETMF
-        int sizeInBytesCalled;
-#else
-        long sizeInBytesCalled;
-#endif
 
         /// <summary>
         /// Default constructor with no body data
@@ -67,7 +61,7 @@ namespace Microsoft.Azure.Devices.Client
             get;
             private set;
         }
-        
+
         /// <summary>
         /// Property indicating the method name for this instance
         /// </summary>
@@ -183,11 +177,6 @@ namespace Microsoft.Azure.Devices.Client
                 throw Fx.Exception.AsError(new InvalidOperationException(Common.Api.ApiResources.MessageBodyConsumed));
 #endif
             }
-        }
-
-        void SetSizeInBytesCalled()
-        {
-            Interlocked.Exchange(ref this.sizeInBytesCalled, 1);
         }
 
         void InitializeWithStream(Stream stream, bool ownsStream)
