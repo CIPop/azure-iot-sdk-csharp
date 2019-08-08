@@ -40,15 +40,16 @@
   </ItemGroup>
 
   <!-- Dev-time tools -->
-  <!-- BUG: https://github.com/dotnet/roslyn-analyzers/issues/1313 -->
+  <!-- BUG: https://github.com/dotnet/roslyn-analyzers/issues/1313 
   <Target Name="IgnoreRunCodeAnalysis" Condition=" '$(RunCodeAnalysis)' == 'true' " BeforeTargets="RunCodeAnalysis">
     <Message Importance="normal" Text="Set RunCodeAnalysisOnThisProject to false" />
     <PropertyGroup>
       <RunCodeAnalysisOnThisProject>false</RunCodeAnalysisOnThisProject>
     </PropertyGroup>
   </Target>
+-->
 
-  <ItemGroup Condition=" '$(RunCodeAnalysis)' == 'true' ">
+  <ItemGroup> <!-- Condition=" '$(RunCodeAnalysis)' == 'true' "> -->
     <None Remove="stylecop.json" />
     <AdditionalFiles Include="stylecop.json" />
 
